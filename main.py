@@ -1,29 +1,27 @@
 import pygame
-
 from lib.Player import Player
+
 
 pygame.init()
 
+# Set up window
+FPS = 60
 clock = pygame.time.Clock()
-win = pygame.display.set_mode((500,500))
-pygame.display.set_caption("VIDEOG AME")
+window = pygame.display.set_mode((854,480))
+window.fill((255, 255, 255))
+pygame.display.set_caption("wumpus game")
+
 player = Player()
 
-run = True
 
-while run:
-    clock.tick(60)
-   
+running = True
+while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            running = False
+            break
 
-    keys = pygame.key.get_pressed()
-    player.check_movement(keys)
-    player.update_physics()
+    pygame.display.update()
+    clock.tick(FPS)
 
-    win.fill((0,0,0))  # Fills the screen with black
-    pygame.draw.rect(win, (255,0,0), player.get_pos() + (50,50))   
-    pygame.display.update() 
-    
 pygame.quit()
