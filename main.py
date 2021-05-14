@@ -24,11 +24,13 @@ while running:
         if event.type == pygame.QUIT:
             running = False
             break
+        # TODO: If it detects the user entering the Konami Code, teleport the player into the super secret grok challenge room
+
 
     # 1: Erase the old sprites with piece of the background and add their locations to the screen updating list
     changed_rects.append(window.blit(background, player.rect, player.rect))
 
-    # 2: Update the locations of the sprites and blit them onto the window + add game logic
+    # 2: Update the locations of the sprites and blit them onto the window + game logic
     player.update()
     window.blit(player.image, player.rect)
 
