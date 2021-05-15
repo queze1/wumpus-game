@@ -15,7 +15,7 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # Create objects and changed_rects
 changed_rects = []
-player = Player(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)
+player = Player((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
 background = pygame.image.load('assets/grokwallpaper.png').convert()
 changed_rects.append(window.blit(background, background.get_rect()))
 

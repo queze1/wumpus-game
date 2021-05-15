@@ -10,10 +10,10 @@ import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, starting_x=0, starting_y=0):
+    def __init__(self, center=(0, 0)):
         super().__init__()
         self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
-        self.rect = self.image.get_rect(center=(starting_x, starting_y))
+        self.rect = self.image.get_rect(center=center)
 
         self.friendly_bullets = pygame.sprite.Group()
 
