@@ -1,12 +1,19 @@
-"""
-This module provides access to several classes that are associated with the player character.
-
-CLASSES
-    pygame.sprite.Sprite
-        Player
-"""
+"""This module provides access to several classes that are associated with the player character."""
 
 import pygame
+from lib.helpers import Direction
+
+
+PLAYER_MOVE_SPEED = 10
+BULLET_MOVE_SPEED = 20
+KEY_TO_DIR = {pygame.K_w: Direction.UP,
+              pygame.K_a: Direction.LEFT,
+              pygame.K_s: Direction.DOWN,
+              pygame.K_d: Direction.RIGHT}
+ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
+                pygame.K_LEFT: Direction.LEFT,
+                pygame.K_DOWN: Direction.DOWN,
+                pygame.K_LEFT: Direction.LEFT}
 
 
 class Player(pygame.sprite.Sprite):
@@ -15,6 +22,8 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
         self.rect = self.image.get_rect(center=center)
 
+        self.attack_delay = 20
+        self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
     def update(self):
@@ -37,7 +46,19 @@ class Player(pygame.sprite.Sprite):
 
         self.rect.move_ip(x, y)
 
+        self.current_attack_delay -= 1
+        if self.current_attack_delay <= 0:
+            self.current_attack_delay = self.attack_delay
+
+            #bullet = Bullet()
+            #self.friendly_bullets.add(bullet)
+
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, starting_x):
+    def __init__(self, center=(0, 0)):
+        super().__init__()
+        self.image = pygame.image.load('assets/bullet.jpg').convert()
+        self.rect = self.image.get_rect(center=center)
+
+    def update(self):
         pass

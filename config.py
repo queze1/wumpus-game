@@ -1,9 +1,5 @@
-"""
-This module stores several magic numbers and gives them informative names.
+"""This module stores several configuration-related magic numbers and gives them informative names."""
 
-DATA
-    WINDOW_WIDTH = 854
-    WINDOW_HEIGHT = 480
-"""
-
+# I would prefer for the window dimensions to be 16:9
+# Don't change until sprite scaling is simulated
 WINDOW_WIDTH, WINDOW_HEIGHT = 854, 480
