@@ -7,24 +7,31 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
 
         self.rect = self.image.get_rect()
-        self.rect.center = (center_x, center_y)
+        self.rect.center = (center_x - self.rect.width/2, center_y - self.rect.height/2)
+
+        self.speed = 7
+        self.x_vel, self.y_vel = 0, 0
 
     def update(self):
-        x = 0
-        y = 0
+        self.x_vel = 0
+        self.y_vel = 0
+
+        self.handle_movement()
+
+        self.rect.move_ip(self.x_vel, self.y_vel)
+
+    def handle_movement(self):
         keys_pressed = pygame.key.get_pressed()
         if keys_pressed[pygame.K_w]:
-            y -= 10
+            self.y_vel -= self.speed
         if keys_pressed[pygame.K_s]:
-            y += 10
+            self.y_vel += self.speed
         if keys_pressed[pygame.K_d]:
-            x += 10
+            self.x_vel += self.speed
         if keys_pressed[pygame.K_a]:
-            x -= 10
+            self.x_vel -= self.speed
 
         # If the player is moving diagonally, divide their speeds by sqrt(2) to keep the speed the same
-        if x and y:
-            x /= 2 ** 0.5
-            y /= 2 ** 0.5
-
-        self.rect.move_ip(x, y)
+        if self.x_vel and self.y_vel:
+            self.x_vel /= 2 ** 0.5
+            self.y_vel /= 2 ** 0.5
