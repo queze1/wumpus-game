@@ -1,13 +1,22 @@
+"""
+This module provides access to several classes that are associated with the player character.
+
+CLASSES
+    pygame.sprite.Sprite
+        Player
+"""
+
 import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, center_x=0, center_y=0):
+    def __init__(self, starting_x=0, starting_y=0):
         super().__init__()
         self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
-
         self.rect = self.image.get_rect()
-        self.rect.center = (center_x, center_y)
+        self.rect.center = (starting_x, starting_y)
+
+        self.friendly_bullets = pygame.sprite.Group()
 
     def update(self):
         x = 0
