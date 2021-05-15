@@ -13,8 +13,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, starting_x=0, starting_y=0):
         super().__init__()
         self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
-        self.rect = self.image.get_rect()
-        self.rect.center = (starting_x, starting_y)
+        self.rect = self.image.get_rect(center=(starting_x, starting_y))
 
         self.friendly_bullets = pygame.sprite.Group()
 
@@ -37,3 +36,8 @@ class Player(pygame.sprite.Sprite):
             y /= 2 ** 0.5
 
         self.rect.move_ip(x, y)
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, starting_x):
+        pass
