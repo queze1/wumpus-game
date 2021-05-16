@@ -4,12 +4,14 @@ import pygame
 from lib.helpers import Direction, WINDOW_RECT
 
 
-PLAYER_MOVE_SPEED = 10
+PLAYER_MOVE_SPEED = 8
 BULLET_MOVE_SPEED = 20
+
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
               pygame.K_a: Direction.LEFT,
               pygame.K_s: Direction.DOWN,
               pygame.K_d: Direction.RIGHT}
+
 ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_LEFT: Direction.LEFT,
                 pygame.K_DOWN: Direction.DOWN,
@@ -19,7 +21,7 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 class Player(pygame.sprite.Sprite):
     def __init__(self, center=(0, 0)):
         super().__init__()
-        self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
+        self.image = pygame.image.load('assets/stevencrowder.png').convert()
         self.rect = self.image.get_rect(center=center)
 
         self.attack_delay = 20
@@ -45,7 +47,7 @@ class Player(pygame.sprite.Sprite):
         # Shoot bullets
         self.current_attack_delay -= 1
         arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]
-        if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1:
+        if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1: 
             self.current_attack_delay = self.attack_delay
             bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
             bullet = Bullet(bullet_dir, center=self.rect.center)
@@ -55,14 +57,12 @@ class Player(pygame.sprite.Sprite):
         for bullet in self.friendly_bullets:
             if not bullet.rect.colliderect(WINDOW_RECT):
                 bullet.kill()
-        print(self.friendly_bullets)
-
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, dir, center=(0, 0)):
         super().__init__()
         self.dir = dir
-        self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
+        self.image = pygame.image.load('assets/bullets.png').convert()
         self.rect = self.image.get_rect(center=center)
 
     def update(self):
