@@ -35,7 +35,7 @@ while running:
     # 2: Update the locations of the sprites and blit them onto the window + game logic
     player.update()
     player.friendly_bullets.update()
-    window.blits([(bullet.image, bullet.rect) for bullet in player.friendly_bullets])
+    player.friendly_bullets.draw(window)
     window.blit(player.image, player.rect)
 
     # 3: Add the new locations to the screen updating list

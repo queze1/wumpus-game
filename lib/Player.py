@@ -1,7 +1,7 @@
 """This module provides access to several classes that are associated with the player character."""
 
 import pygame
-from lib.helpers import Direction
+from lib.helpers import Direction, WINDOW_RECT
 
 
 PLAYER_MOVE_SPEED = 10
@@ -13,7 +13,7 @@ KEY_TO_DIR = {pygame.K_w: Direction.UP,
 ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_LEFT: Direction.LEFT,
                 pygame.K_DOWN: Direction.DOWN,
-                pygame.K_LEFT: Direction.LEFT}
+                pygame.K_RIGHT: Direction.RIGHT}
 
 
 class Player(pygame.sprite.Sprite):
@@ -27,38 +27,44 @@ class Player(pygame.sprite.Sprite):
         self.friendly_bullets = pygame.sprite.Group()
 
     def update(self):
-        x = 0
-        y = 0
+        # Movement
+        x, y = 0, 0
         keys_pressed = pygame.key.get_pressed()
-        if keys_pressed[pygame.K_w]:
-            y -= 10
-        if keys_pressed[pygame.K_s]:
-            y += 10
-        if keys_pressed[pygame.K_d]:
-            x += 10
-        if keys_pressed[pygame.K_a]:
-            x -= 10
-
+        for key in KEY_TO_DIR:
+            if keys_pressed[key]:
+                # MultiplicableTuple makes multiplying the tuple multiply everything inside of it instead
+                x_change, y_change = KEY_TO_DIR[key] * PLAYER_MOVE_SPEED
+                x += x_change
+                y += y_change
         # If the player is moving diagonally, divide their speeds by sqrt(2) to keep the speed the same
         if x and y:
             x /= 2 ** 0.5
             y /= 2 ** 0.5
-
         self.rect.move_ip(x, y)
 
+        # Shoot bullets
         self.current_attack_delay -= 1
-        if self.current_attack_delay <= 0:
+        arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]
+        if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1:
             self.current_attack_delay = self.attack_delay
+            bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
+            bullet = Bullet(bullet_dir, center=self.rect.center)
+            self.friendly_bullets.add(bullet)
 
-            #bullet = Bullet()
-            #self.friendly_bullets.add(bullet)
+        # Erase bullets that are off the screen
+        for bullet in self.friendly_bullets:
+            if not bullet.rect.colliderect(WINDOW_RECT):
+                bullet.kill()
+        print(self.friendly_bullets)
 
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, center=(0, 0)):
+    def __init__(self, dir, center=(0, 0)):
         super().__init__()
-        self.image = pygame.image.load('assets/bullet.jpg').convert()
+        self.dir = dir
+        self.image = pygame.image.load('assets/stevencrowder.jpg').convert()
         self.rect = self.image.get_rect(center=center)
 
     def update(self):
-        pass
+        x, y = self.dir * BULLET_MOVE_SPEED
+        self.rect.move_ip(x, y)
