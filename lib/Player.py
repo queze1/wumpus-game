@@ -1,8 +1,8 @@
 """This module provides access to several classes that are associated with the player character."""
 
 import pygame
-from lib.helpers import Direction, WINDOW_RECT
 
+from lib.helpers import Direction, WINDOW_RECT
 
 PLAYER_MOVE_SPEED = 8
 BULLET_MOVE_SPEED = 20
@@ -28,6 +28,9 @@ class Player(pygame.sprite.Sprite):
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
+    def handle_collisions(self):
+        pass
+
     def update(self):
         # Movement
         x, y = 0, 0
@@ -42,6 +45,9 @@ class Player(pygame.sprite.Sprite):
         if x and y:
             x /= 2 ** 0.5
             y /= 2 ** 0.5
+
+        self.handle_collisions()
+
         self.rect.move_ip(x, y)
 
         # Shoot bullets

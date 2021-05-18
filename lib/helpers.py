@@ -3,8 +3,8 @@ This module provides access to several useful constants and helper functions.
 """
 
 import pygame
-import config
 
+import config
 
 class MultiplicableTuple(tuple):
     """A tuple, but when it is multiplied by an integer it multiplies all the items in it instead."""

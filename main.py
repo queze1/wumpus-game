@@ -2,8 +2,9 @@ import pygame
 
 from config import *
 from lib.Player import Player
+from lib.Obstacles import Wall
 from lib.GameMap import GameMap
-from lib.helpers import Direction
+from lib.Environment import Level
 
 
 pygame.init()
@@ -21,8 +22,10 @@ background = pygame.image.load('assets/grokwallpaper.png').convert()
 
 # Initialize map
 map = GameMap()
+level = Level(map.get_room())
 
 all = pygame.sprite.OrderedUpdates() #renders sprites in ORDER OF ADDITION
+all.add(level)
 all.add(player)
 
 running = True
@@ -35,10 +38,18 @@ while running:
     # Level Handling
     direction_exited = map.check_player_exited(player.rect)
     if direction_exited:
+        # Reset player location
         x_change, y_change = direction_exited
         player.rect.x -= x_change * (WINDOW_WIDTH + 15)
         player.rect.y -= y_change * (WINDOW_HEIGHT + 15)
+
+        # Change location
         map.move_player(direction_exited)
+
+        # Change level depending on new room
+        all.remove(level)
+        level.reset_room(map.get_room())
+        all.add(level)
 
     all.clear(window, background)
     all.update()
