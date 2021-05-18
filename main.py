@@ -52,11 +52,11 @@ while running:
         all.add(level)
 
     all.clear(window, background)
-    all.update()
+    all.update(all)
     all.add(player.friendly_bullets)
 
     rects = all.draw(window)
-    pygame.display.update([pygame.Rect(rect.x - 20, rect.y - 20, rect.width + 40, rect.height + 40) for rect in rects])
+    pygame.display.update(rects)
 
     clock.tick(FPS)
 

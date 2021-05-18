@@ -3,8 +3,9 @@
 import pygame
 
 from lib.helpers import Direction, WINDOW_RECT
+from lib.Obstacles import Wall
 
-PLAYER_MOVE_SPEED = 8
+PLAYER_MOVE_SPEED = 5
 BULLET_MOVE_SPEED = 20
 
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
@@ -28,10 +29,12 @@ class Player(pygame.sprite.Sprite):
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
-    def handle_collisions(self):
-        pass
+    def collision_test(self, all_sprites, sprite_check):
+        return [sprite for sprite in 
+                pygame.sprite.spritecollide(self, all_sprites, False) 
+                if isinstance(sprite, sprite_check)]
 
-    def update(self):
+    def update(self, all_sprites):
         # Movement
         x, y = 0, 0
         keys_pressed = pygame.key.get_pressed()
@@ -41,14 +44,25 @@ class Player(pygame.sprite.Sprite):
                 x_change, y_change = KEY_TO_DIR[key] * PLAYER_MOVE_SPEED
                 x += x_change
                 y += y_change
+
         # If the player is moving diagonally, divide their speeds by sqrt(2) to keep the speed the same
         if x and y:
             x /= 2 ** 0.5
             y /= 2 ** 0.5
 
-        self.handle_collisions()
+        self.rect.y += y
+        for wall in self.collision_test(all_sprites, Wall):
+            if y > 0: 
+                self.rect.bottom = wall.rect.top
+            if y < 0:
+                self.rect.top = wall.rect.bottom
 
-        self.rect.move_ip(x, y)
+        self.rect.x += x        
+        for wall in self.collision_test(all_sprites, Wall):
+            if x > 0: 
+                self.rect.right = wall.rect.left
+            if x < 0:
+                self.rect.left = wall.rect.right
 
         # Shoot bullets
         self.current_attack_delay -= 1
@@ -71,6 +85,6 @@ class Bullet(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/bullets.png').convert()
         self.rect = self.image.get_rect(center=center)
 
-    def update(self):
+    def update(self, all_sprites):
         x, y = self.dir * BULLET_MOVE_SPEED
         self.rect.move_ip(x, y)
