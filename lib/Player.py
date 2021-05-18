@@ -53,6 +53,7 @@ class Player(pygame.sprite.Sprite):
         # Shoot bullets
         self.current_attack_delay -= 1
         arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]
+        # Currently only fire if only one arrow key is being pressed
         if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1: 
             self.current_attack_delay = self.attack_delay
             bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
@@ -63,6 +64,7 @@ class Player(pygame.sprite.Sprite):
         for bullet in self.friendly_bullets:
             if not bullet.rect.colliderect(WINDOW_RECT):
                 bullet.kill()
+
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, dir, center=(0, 0)):
