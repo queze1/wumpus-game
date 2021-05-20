@@ -38,8 +38,8 @@ while running:
     if direction_exited:
         # Reset player location
         x_change, y_change = direction_exited
-        player.rect.x -= x_change * (WINDOW_WIDTH + 15)
-        player.rect.y -= y_change * (WINDOW_HEIGHT + 15)
+        player.rect.x -= x_change * (WINDOW_WIDTH)
+        player.rect.y -= y_change * (WINDOW_HEIGHT)
 
         # Change location
         game_map.move_player(direction_exited)

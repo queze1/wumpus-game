@@ -100,13 +100,13 @@ class GameMap:
 
     @staticmethod
     def check_exited(rect):
-        if rect.x > WINDOW_WIDTH:
+        if rect.x > WINDOW_WIDTH - 10:
             return Direction.RIGHT
-        elif rect.x < 0 - rect.width:
+        elif rect.x < (0 - rect.width) + 10:
             return Direction.LEFT
-        elif rect.y > WINDOW_HEIGHT:
+        elif rect.y > WINDOW_HEIGHT - 10:
             return Direction.DOWN
-        elif rect.y < 0 - rect.height:
+        elif rect.y < (0 - rect.height) + 10:
             return Direction.UP
         return None
 
