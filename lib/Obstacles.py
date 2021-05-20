@@ -1,5 +1,6 @@
 import pygame
 
+
 class Wall(pygame.sprite.Sprite):
     def __init__(self, center=(0, 0)):
         super().__init__()
