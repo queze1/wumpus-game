@@ -29,11 +29,6 @@ class Player(pygame.sprite.Sprite):
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
-    def collision_test(self, all_sprites, sprite_check):
-        return [sprite for sprite in 
-                pygame.sprite.spritecollide(self, all_sprites, False) 
-                if isinstance(sprite, sprite_check)]
-
     def update(self, all_sprites):
         # Movement
         x, y = 0, 0
@@ -50,15 +45,16 @@ class Player(pygame.sprite.Sprite):
             x /= 2 ** 0.5
             y /= 2 ** 0.5
 
+        # Wall collision detection
+        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
         self.rect.y += y
-        for wall in self.collision_test(all_sprites, Wall):
+        for wall in pygame.sprite.spritecollide(self, walls, False):
             if y > 0: 
                 self.rect.bottom = wall.rect.top
             if y < 0:
                 self.rect.top = wall.rect.bottom
-
         self.rect.x += x        
-        for wall in self.collision_test(all_sprites, Wall):
+        for wall in pygame.sprite.spritecollide(self, walls, False):
             if x > 0: 
                 self.rect.right = wall.rect.left
             if x < 0:
@@ -74,19 +70,23 @@ class Player(pygame.sprite.Sprite):
             bullet = Bullet(bullet_dir, center=self.rect.center)
             self.friendly_bullets.add(bullet)
 
-        # Erase bullets that are off the screen
-        for bullet in self.friendly_bullets:
-            if not bullet.rect.colliderect(WINDOW_RECT):
-                bullet.kill()
-
 
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, dir, center=(0, 0)):
+    def __init__(self, direction, center=(0, 0)):
         super().__init__()
-        self.dir = dir
+        self.dir = direction
         self.image = pygame.image.load('assets/bullets.png').convert()
         self.rect = self.image.get_rect(center=center)
 
     def update(self, all_sprites):
         x, y = self.dir * BULLET_MOVE_SPEED
         self.rect.move_ip(x, y)
+
+        # Erase the bullet if it hits a wall or goes offscreen
+        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
+        if pygame.sprite.spritecollideany(self, walls):
+            self.kill()
+            return
+        if not self.rect.colliderect(WINDOW_RECT):
+            self.kill()
+            return

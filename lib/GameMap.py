@@ -1,22 +1,105 @@
-"""This module provides access to the map of the game."""
+"""
+This module provides access to the game map, which generates the dungeon,
+places environmental objects and places enemies.
+"""
+
+from itertools import chain
+import os
+import random
+
+import pygame
 
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
 from lib.helpers import Direction
 from lib.Obstacles import Wall
 
-class GameMap():
-    def __init__(self):
-        #the values in self.map refer to level txt files in asset/levels
-        self.map = [['0','1','2'],
-                    ['3','test_room','5'],
-                    ['6','test_room1','8']]
-        self.player_location = (1,1) #(x,y)
 
-    def get_room(self):
-        x, y = self.player_location
-        return self.map[y][x]
-    
-    def check_player_exited(self, rect):
+LEVEL_PATH = 'assets/levels'
+NORMAL_LEVEL_PATHS = [f'{LEVEL_PATH}/{name}' for name in os.listdir(LEVEL_PATH) if name.startswith('normal')]
+STARTING_LEVEL_PATH = f'{LEVEL_PATH}/starting_room.txt'
+LEVEL_DICTIONARY = {
+    '#': Wall
+}
+
+# What coordinates will be kept open to create an exit for each direction
+DIR_TO_EXIT_COORDS = {Direction.UP: ((12, 0), (13, 0), (14, 0)),
+                      Direction.DOWN: ((12, 14), (13, 14), (14, 14)),
+                      Direction.LEFT: ((0, 6), (0, 7), (0, 8)),
+                      Direction.RIGHT: ((26, 6), (26, 7), (26, 8))}
+
+
+def room_neighbours(room_tuple, exclude=()):
+    """Find the room tuples that are next to this one, excluding certain rooms."""
+    x, y = room_tuple
+    # Order is up, down, left, right
+    return [room for room in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]
+            if room not in exclude]
+
+
+def load_room(room_path, exit_directions):
+    # Find all the coordinates that need to be kept open for exits
+    exit_coords = list(chain.from_iterable([DIR_TO_EXIT_COORDS[direction] for direction in exit_directions]))
+
+    room_sprites = pygame.sprite.Group()
+    with open(room_path, 'r') as tile_data:
+        for y, line in enumerate(tile_data.readlines()):
+            for x, char in enumerate(line):
+                if not (char in [' ', '\n']):
+                    if (x, y) not in exit_coords:
+                        room_sprites.add(LEVEL_DICTIONARY[char]((16 + (32 * x), 16 + (32 * y))))
+
+    return room_sprites
+
+
+class GameMap:
+    def __init__(self, num_rooms):
+        starting_room = (0, 0)
+        room_locs = [starting_room]
+        self.player_location = starting_room
+        self.environmental_sprites = pygame.sprite.Group()
+
+        # Generate dungeon
+        while True:
+            for room in room_locs:
+                if len(room_locs) == num_rooms:
+                    break
+
+                # Iterate through all the room's neighbours, excluding any already occupied rooms
+                for neighbour in room_neighbours(room, exclude=room_locs):
+                    neighbour_free_spaces = room_neighbours(neighbour, room_locs)
+                    # If the neighbour cell would already be next to 3 rooms or more, give up
+                    if len(neighbour_free_spaces) <= 1:
+                        continue
+
+                    # 50% chance of placing room
+                    if random.random() > 0.5:
+                        room_locs.append(neighbour)
+
+            if len(room_locs) == num_rooms:
+                break
+
+        # TODO: Place a boss room at the last end room
+        # Load a room for each room location
+        self.rooms = {}
+        for room_loc in room_locs:
+            # Find the directions in which exits should be located
+            exit_directions = []
+            # Order of room_neighbour is up, down, left, right
+            for neighbour, direction in zip(room_neighbours(room_loc), Direction.UP_DOWN_LEFT_RIGHT):
+                if neighbour in room_locs:
+                    exit_directions.append(direction)
+
+            if room_loc == starting_room:
+                self.rooms[room_loc] = load_room(STARTING_LEVEL_PATH, exit_directions)
+            else:
+                self.rooms[room_loc] = load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions)
+
+        # Load starting room
+        self.environmental_sprites = self.rooms[starting_room]
+        print(room_locs)
+
+    @staticmethod
+    def check_exited(rect):
         if rect.x > WINDOW_WIDTH:
             return Direction.RIGHT
         elif rect.x < 0 - rect.width:
@@ -28,17 +111,11 @@ class GameMap():
         return None
 
     def move_player(self, direction):
-        new_x = self.player_location[0] + direction[0]
-        new_y = self.player_location[1] + direction[1]
+        x, y = self.player_location
+        self.player_location = (x + direction[0], y + direction[1])
 
-        try:
-            assert new_x >= 0
-            assert new_y >= 0
-            self.map[new_y][new_x]
-            self.player_location = (new_x, new_y)
-        except (IndexError, AssertionError):
-            pass
+    def change_room(self, room_loc=None):
+        if not room_loc:
+            room_loc = self.player_location
 
-        print(self.player_location)
-        
-    
+        self.environmental_sprites = self.rooms[room_loc]
