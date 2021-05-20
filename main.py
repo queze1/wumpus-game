@@ -2,7 +2,7 @@ import pygame
 
 from config import *
 from lib.Player import Player
-from lib.GameMap import GameMap, load_room
+from lib.GameMap import GameMap
 
 
 pygame.init()
@@ -21,7 +21,7 @@ background = pygame.image.load('assets/grokwallpaper.png').convert()
 game_map = GameMap(12)
 
 # maybe use LayeredUpdates()?
-all_sprites = pygame.sprite.OrderedUpdates() # renders sprites in ORDER OF ADDITION
+all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
 all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)
 
