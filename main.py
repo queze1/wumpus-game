@@ -44,7 +44,10 @@ while running:
         # Change location
         game_map.move_player(direction_exited)
         print(game_map.player_location)
+
         # Change level sprites depending on player location
+        all_sprites.remove(player.friendly_bullets)
+        player.friendly_bullets.empty()
         all_sprites.remove(game_map.environmental_sprites)
         game_map.change_room()
         all_sprites.add(game_map.environmental_sprites)

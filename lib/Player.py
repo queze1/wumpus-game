@@ -53,7 +53,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.bottom = wall.rect.top
             if y < 0:
                 self.rect.top = wall.rect.bottom
-        self.rect.x += x        
+        self.rect.x += x
         for wall in pygame.sprite.spritecollide(self, walls, False):
             if x > 0: 
                 self.rect.right = wall.rect.left
