@@ -53,6 +53,7 @@ def load_room(room_path, exit_directions):
 
 class GameMap:
     def __init__(self, num_rooms):
+        print('hi')
         starting_room = (0, 0)
         room_locs = [starting_room]
         self.player_location = starting_room
@@ -61,7 +62,8 @@ class GameMap:
         # Generate dungeon
         while True:
             for room in room_locs:
-                if len(room_locs) == num_rooms:
+                print(len(room_locs))
+                if len(room_locs) >= num_rooms:
                     break
 
                 # Iterate through all the room's neighbours, excluding any already occupied rooms
@@ -75,7 +77,7 @@ class GameMap:
                     if random.random() > 0.5:
                         room_locs.append(neighbour)
 
-            if len(room_locs) == num_rooms:
+            if len(room_locs) >= num_rooms:
                 break
 
         # TODO: Place a boss room at the last end room
