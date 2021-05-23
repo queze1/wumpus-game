@@ -17,6 +17,7 @@ from lib.Obstacles import Wall
 LEVEL_PATH = 'assets/levels'
 NORMAL_LEVEL_PATHS = [f'{LEVEL_PATH}/{name}' for name in os.listdir(LEVEL_PATH) if name.startswith('normal')]
 STARTING_LEVEL_PATH = f'{LEVEL_PATH}/starting_room.txt'
+BOSS_LEVEL_PATH = f'{LEVEL_PATH}/boss_room.txt'
 LEVEL_DICTIONARY = {
     '#': Wall
 }
@@ -31,8 +32,8 @@ DIR_TO_EXIT_COORDS = {Direction.UP: ((12, 0), (13, 0), (14, 0)),
 def room_neighbours(room_tuple, exclude=()):
     """Find the room tuples that are next to this one, excluding certain rooms."""
     x, y = room_tuple
-    # Order is up, down, left, right
-    return [room for room in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]
+    # Order is up, left, down, right WASD
+    return [room for room in [(x, y - 1), (x - 1, y), (x, y + 1), (x + 1, y)]
             if room not in exclude]
 
 
@@ -55,17 +56,19 @@ class GameMap:
     def __init__(self, num_rooms):
         starting_room = (0, 0)
         room_locs = [starting_room]
+        self.boss_room_loc = None
         self.player_location = starting_room
         self.environmental_sprites = pygame.sprite.Group()
 
         # Generate dungeon
         while True:
             for room in room_locs:
-                if len(room_locs) == num_rooms:
-                    break
-
                 # Iterate through all the room's neighbours, excluding any already occupied rooms
                 for neighbour in room_neighbours(room, exclude=room_locs):
+                    # If enough rooms have been placed, give up
+                    if len(room_locs) == num_rooms:
+                        break
+
                     neighbour_free_spaces = room_neighbours(neighbour, room_locs)
                     # If the neighbour cell would already be next to 3 rooms or more, give up
                     if len(neighbour_free_spaces) <= 1:
@@ -75,28 +78,36 @@ class GameMap:
                     if random.random() > 0.5:
                         room_locs.append(neighbour)
 
+                if len(room_locs) == num_rooms:
+                    break
+
             if len(room_locs) == num_rooms:
                 break
 
-        # TODO: Place a boss room at the last end room
         # Load a room for each room location
         self.rooms = {}
-        for room_loc in room_locs:
+        for room_loc in reversed(room_locs):  # Iterate from the last placed rooms to place the boss room
             # Find the directions in which exits should be located
             exit_directions = []
-            # Order of room_neighbour is up, down, left, right
-            for neighbour, direction in zip(room_neighbours(room_loc), Direction.UP_DOWN_LEFT_RIGHT):
+            # Order of room_neighbour is up, left, down, right WASD
+            for neighbour, direction in zip(room_neighbours(room_loc), Direction.UP_LEFT_DOWN_RIGHT):
                 if neighbour in room_locs:
                     exit_directions.append(direction)
 
+
             if room_loc == starting_room:
                 self.rooms[room_loc] = load_room(STARTING_LEVEL_PATH, exit_directions)
+            # If the boss room has not been placed yet, and this room is a dead end, make this the boss room
+            elif not self.boss_room_loc and (len(exit_directions) == 1):
+                self.boss_room_loc = room_loc
+                self.rooms[room_loc] = load_room(BOSS_LEVEL_PATH, exit_directions)
             else:
                 self.rooms[room_loc] = load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions)
 
         # Load starting room
         self.environmental_sprites = self.rooms[starting_room]
         print(room_locs)
+        print(self.boss_room_loc)
 
     @staticmethod
     def check_exited(rect):
