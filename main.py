@@ -19,6 +19,7 @@ background = pygame.image.load('assets/grokwallpaper.png').convert()
 
 # Initialize map
 game_map = GameMap(12)
+print('lol?')
 
 # maybe use LayeredUpdates()?
 all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
