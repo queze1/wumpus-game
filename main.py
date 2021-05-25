@@ -48,9 +48,11 @@ while running:
         # Change level sprites depending on player location
         all_sprites.remove(player.friendly_bullets)
         player.friendly_bullets.empty()
-        all_sprites.remove(game_map.environmental_sprites)
+        all_sprites.remove(game_map.environmental_sprites)  
+        all_sprites.remove(game_map.enemy_spawner.enemies)
         game_map.change_room()
         all_sprites.add(game_map.environmental_sprites)
+        all_sprites.add(game_map.enemy_spawner.enemies)
 
     all_sprites.clear(window, background)
     all_sprites.update(all_sprites)
