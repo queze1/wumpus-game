@@ -70,7 +70,7 @@ class Player(BaseSprite):
 
 class Bullet(BaseSprite):
     def __init__(self, direction, center=(0, 0)):
-        super().__init__(image_path='assets/bullets.ping', center=center)
+        super().__init__(image_path='assets/bullets.png', center=center)
         self.dir = direction
 
     def update(self, all_sprites):
