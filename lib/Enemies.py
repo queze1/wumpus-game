@@ -20,6 +20,5 @@ class EnemySpawner:
 
 class TestEnemy(BaseSprite):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/wall.png')
-        self.image = pygame.image.load('assets/bullets.png').convert()
+        super().__init__(image_path='assets/bullets.png')
         self.rect = self.image.get_rect(center=center)
