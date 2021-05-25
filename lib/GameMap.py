@@ -10,6 +10,7 @@ import random
 import pygame
 
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
+from lib.Enemies import EnemySpawner
 from lib.helpers import Direction
 from lib.Obstacles import Wall
 
@@ -58,6 +59,7 @@ class GameMap:
         room_locs = [starting_room]
         self.boss_room_loc = None
         self.player_location = starting_room
+        self.enemy_spawner = EnemySpawner(1, 1)
         self.environmental_sprites = pygame.sprite.Group()
 
         # Generate dungeon
@@ -96,16 +98,16 @@ class GameMap:
 
 
             if room_loc == starting_room:
-                self.rooms[room_loc] = load_room(STARTING_LEVEL_PATH, exit_directions)
+                self.rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True]
             # If the boss room has not been placed yet, and this room is a dead end, make this the boss room
             elif not self.boss_room_loc and (len(exit_directions) == 1):
                 self.boss_room_loc = room_loc
-                self.rooms[room_loc] = load_room(BOSS_LEVEL_PATH, exit_directions)
+                self.rooms[room_loc] = [load_room(BOSS_LEVEL_PATH, exit_directions), False]
             else:
-                self.rooms[room_loc] = load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions)
+                self.rooms[room_loc] = [load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions), False]
 
         # Load starting room
-        self.environmental_sprites = self.rooms[starting_room]
+        self.environmental_sprites, _ = self.rooms[starting_room]
         print(room_locs)
         print(self.boss_room_loc)
 
@@ -129,4 +131,9 @@ class GameMap:
         if not room_loc:
             room_loc = self.player_location
 
-        self.environmental_sprites = self.rooms[room_loc]
+        self.environmental_sprites, _ = self.rooms[room_loc]
+
+        self.enemy_spawner.reset_enemies()
+        if not self.rooms[room_loc][1]:
+            self.enemy_spawner.spawn_enemies()    
+            self.rooms[room_loc][1] = True  
