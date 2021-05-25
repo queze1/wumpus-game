@@ -5,7 +5,6 @@ import pygame
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
 from lib.helpers import BaseSprite
 
-
 class EnemySpawner:
     def __init__(self, difficulty, lvl_number):
         self.difficulty = difficulty
@@ -20,5 +19,5 @@ class EnemySpawner:
 
 class TestEnemy(BaseSprite):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/bullets.png')
+        super().__init__(image_path='assets/enemy.png')
         self.rect = self.image.get_rect(center=center)
