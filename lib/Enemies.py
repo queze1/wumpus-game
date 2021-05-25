@@ -3,6 +3,7 @@ from random import randint
 import pygame
 
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
+from lib.helpers import BaseSprite
 
 
 class EnemySpawner:
@@ -17,8 +18,8 @@ class EnemySpawner:
     def reset_enemies(self):
         self.enemies.empty()
 
-class TestEnemy(pygame.sprite.Sprite):
-    def __init__(self, center=(0,0)):
-        super().__init__()
+class TestEnemy(BaseSprite):
+    def __init__(self, center=(0, 0)):
+        super().__init__(image_path='assets/wall.png')
         self.image = pygame.image.load('assets/bullets.png').convert()
         self.rect = self.image.get_rect(center=center)

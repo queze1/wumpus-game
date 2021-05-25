@@ -1,5 +1,5 @@
 """
-This module provides access to several useful constants and helper functions.
+This module provides access to several useful constants, helper functions and classes.
 """
 
 import pygame
@@ -22,6 +22,14 @@ class Direction:
     LEFT = MultiplicableTuple([-1, 0])
     RIGHT = MultiplicableTuple([1, 0])
     UP_LEFT_DOWN_RIGHT = [UP, LEFT, DOWN, RIGHT]  # WASD
+
+
+class BaseSprite(pygame.sprite.Sprite):
+    def __init__(self, image_path=None, center=(0, 0)):
+        super().__init__()
+        if image_path:
+            self.image = pygame.image.load(image_path).convert()
+        self.rect = self.image.get_rect(center=center)
 
 
 WINDOW_RECT = pygame.Rect(0, 0, config.WINDOW_WIDTH, config.WINDOW_HEIGHT)

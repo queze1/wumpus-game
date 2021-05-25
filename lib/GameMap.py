@@ -96,7 +96,6 @@ class GameMap:
                 if neighbour in room_locs:
                     exit_directions.append(direction)
 
-
             if room_loc == starting_room:
                 self.rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True]
             # If the boss room has not been placed yet, and this room is a dead end, make this the boss room
@@ -108,8 +107,6 @@ class GameMap:
 
         # Load starting room
         self.environmental_sprites, _ = self.rooms[starting_room]
-        print(room_locs)
-        print(self.boss_room_loc)
 
     @staticmethod
     def check_exited(rect):
