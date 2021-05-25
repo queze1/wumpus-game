@@ -2,7 +2,7 @@
 
 import pygame
 
-from lib.helpers import Direction, WINDOW_RECT
+from lib.helpers import BaseSprite, Direction, WINDOW_RECT
 from lib.Obstacles import Wall
 
 PLAYER_MOVE_SPEED = 5
@@ -19,12 +19,9 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_RIGHT: Direction.RIGHT}
 
 
-class Player(pygame.sprite.Sprite):
+class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
-        super().__init__()
-        self.image = pygame.image.load('assets/stevencrowder.png').convert()
-        self.rect = self.image.get_rect(center=center)
-
+        super().__init__(image_path='assets/stevencrowder.png', center=center)
         self.attack_delay = 20
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
@@ -71,12 +68,10 @@ class Player(pygame.sprite.Sprite):
             self.friendly_bullets.add(bullet)
 
 
-class Bullet(pygame.sprite.Sprite):
+class Bullet(BaseSprite):
     def __init__(self, direction, center=(0, 0)):
-        super().__init__()
+        super().__init__(image_path='assets/bullets.ping', center=center)
         self.dir = direction
-        self.image = pygame.image.load('assets/bullets.png').convert()
-        self.rect = self.image.get_rect(center=center)
 
     def update(self, all_sprites):
         x, y = self.dir * BULLET_MOVE_SPEED
