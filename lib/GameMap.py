@@ -1,6 +1,8 @@
 """
-This module provides access to the game map, which generates the dungeon,
-places environmental objects and places enemies.
+This module provides access to the game map and the enemy generator.
+
+The game map generates the dungeon and places environmental objects when the player changes rooms.
+The enemy generator places enemies.
 """
 
 from itertools import chain
@@ -10,9 +12,10 @@ import random
 import pygame
 
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
-from lib.Enemies import EnemySpawner
+from lib.Enemies import BaseEnemy, TestEnemy, TestBoss
 from lib.helpers import Direction
 from lib.Obstacles import Wall
+from lib.Player import Player
 
 
 LEVEL_PATH = 'assets/levels'
@@ -53,14 +56,71 @@ def load_room(room_path, exit_directions):
     return room_sprites
 
 
+class EnemySpawner:
+    def __init__(self):
+        self.lvl_number = 0
+
+        self.is_boss = False
+        self.waves_left = 0
+        self.room_cleared = True
+        self.enemies = pygame.sprite.Group()
+
+    def room_setup(self, is_cleared, is_boss=False):
+        self.enemies.empty()
+        self.is_boss = is_boss
+        if is_cleared:
+            self.waves_left = 0
+        else:
+            self.lvl_number += 1
+            if not is_boss:
+                self.waves_left = 2
+            else:
+                self.waves_left = 1
+
+    def update_enemies(self, all_sprites):
+        """
+        Spawns enemies. Before entering a room with enemies, call room_setup().
+        Returns True if the room is cleared. Returns False if the room is not cleared.
+        """
+        if self.waves_left:
+            if self.is_boss:
+                self.enemies.add(TestBoss((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
+                self.waves_left -= 1
+
+            elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+                no_spawn = [sprite.rect.inflate(10, 10) for sprite in all_sprites if isinstance(sprite, Wall)]
+                no_spawn.append([sprite.rect.inflate(100, 100) for sprite in all_sprites
+                                 if isinstance(sprite, Player)][0])
+
+                for j in range(self.lvl_number):
+                    # Sanity checking
+                    sane = False
+                    while not sane:
+                        enemy = TestEnemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
+                        if enemy.rect.collidelist(no_spawn) == -1:
+                            sane = True
+
+                    self.enemies.add(enemy)
+                    no_spawn.append(enemy.rect.inflate(20, 20))
+
+                self.waves_left -=1
+
+            return False
+
+        elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+            return True
+
+        # Kill enemies
+
+
 class GameMap:
     def __init__(self, num_rooms):
         starting_room = (0, 0)
         room_locs = [starting_room]
         self.boss_room_loc = None
         self.player_location = starting_room
-        self.enemy_spawner = EnemySpawner(1, 1)
         self.environmental_sprites = pygame.sprite.Group()
+        self.enemy_spawner = EnemySpawner()
 
         # Generate dungeon
         while True:
@@ -120,6 +180,17 @@ class GameMap:
             return Direction.UP
         return None
 
+    def is_cleared(self, room_loc=None):
+        if not room_loc:
+            room_loc = self.player_location
+        _, is_cleared = self.rooms[room_loc]
+        return is_cleared
+
+    def set_cleared(self, is_cleared, room_loc=None):
+        if not room_loc:
+            room_loc = self.player_location
+        self.rooms[room_loc][1] = is_cleared
+
     def move_player(self, direction):
         x, y = self.player_location
         self.player_location = (x + direction[0], y + direction[1])
@@ -128,9 +199,13 @@ class GameMap:
         if not room_loc:
             room_loc = self.player_location
 
-        self.environmental_sprites, _ = self.rooms[room_loc]
+        # TODO: Close exits until the enemies are defeated
+        self.environmental_sprites, is_cleared = self.rooms[room_loc]
 
-        self.enemy_spawner.reset_enemies()
-        if not self.rooms[room_loc][1]:
-            self.enemy_spawner.spawn_enemies()    
-            self.rooms[room_loc][1] = True  
+        if not is_cleared:
+            if room_loc == self.boss_room_loc:
+                self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
+            else:
+                self.enemy_spawner.room_setup(is_cleared=False, is_boss=False)
+        else:
+            self.enemy_spawner.room_setup(is_cleared=True)

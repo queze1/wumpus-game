@@ -38,8 +38,8 @@ while running:
     if direction_exited:
         # Reset player location
         x_change, y_change = direction_exited
-        player.rect.x -= x_change * (WINDOW_WIDTH)
-        player.rect.y -= y_change * (WINDOW_HEIGHT)
+        player.rect.x -= x_change * WINDOW_WIDTH
+        player.rect.y -= y_change * WINDOW_HEIGHT
 
         # Change location
         game_map.move_player(direction_exited)
@@ -48,19 +48,23 @@ while running:
         # Change level sprites depending on player location
         all_sprites.remove(player.friendly_bullets)
         player.friendly_bullets.empty()
-        all_sprites.remove(game_map.environmental_sprites)  
+        all_sprites.remove(game_map.environmental_sprites)
         all_sprites.remove(game_map.enemy_spawner.enemies)
         game_map.change_room()
         all_sprites.add(game_map.environmental_sprites)
-        all_sprites.add(game_map.enemy_spawner.enemies)
 
+    # Add and update sprites
     all_sprites.clear(window, background)
-    all_sprites.update(all_sprites)
     all_sprites.add(player.friendly_bullets)
+    if not game_map.is_cleared():
+        is_cleared = game_map.enemy_spawner.update_enemies(all_sprites)
+        game_map.set_cleared(is_cleared)
+
+    all_sprites.add(game_map.enemy_spawner.enemies)
+    all_sprites.update(all_sprites)
 
     rects = all_sprites.draw(window)
     pygame.display.update(rects)
-
     clock.tick(FPS)
 
 pygame.quit()

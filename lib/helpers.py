@@ -21,7 +21,7 @@ class Direction:
     DOWN = MultiplicableTuple([0, 1])
     LEFT = MultiplicableTuple([-1, 0])
     RIGHT = MultiplicableTuple([1, 0])
-    UP_LEFT_DOWN_RIGHT = [UP, LEFT, DOWN, RIGHT]  # WASD
+    UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
 
 
 class BaseSprite(pygame.sprite.Sprite):
