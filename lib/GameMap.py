@@ -186,21 +186,55 @@ class GameMap:
     def set_cleared(self, is_cleared):
         self.rooms[self.player_location][1] = is_cleared
 
-    def lock_room(self):
-        pass
+    def lock_room(self, exited_dir):
+        room_exit_dirs = self.rooms[self.player_location][2]
+        entered_dir = exited_dir * -1
+        print(entered_dir, exited_dir)
 
-    def move_player(self, direction):
+        for direction in room_exit_dirs:
+            print(direction)
+            if direction == entered_dir:
+                continue
+
+            for x, y in DIR_TO_EXIT_COORDS[direction]:
+                print('wall added')
+                self.environmental_sprites.add(Wall((16 + (32 * x), 16 + (32 * y))))
+
+    def unlock_room(self):
+        room_exit_dirs = self.rooms[self.player_location][2]
+        unlock_locs = chain.from_iterable(
+            [[(16 + (32 * x), 16 + (32 * y)) for x, y in DIR_TO_EXIT_COORDS[direction]] for direction in room_exit_dirs]
+        )
+        for sprite in self.environmental_sprites:
+            if sprite.rect.center in unlock_locs:
+                self.environmental_sprites.remove(sprite)
+
+    def handle_rooms(self, all_sprites, player):
+        dir_exited = self.check_exited(player.rect)
+        if not dir_exited:
+            return
+
+        # Move player location
         x, y = self.player_location
-        self.player_location = (x + direction[0], y + direction[1])
+        x_change, y_change = dir_exited
+        self.player_location = (x + x_change, y + y_change)
+        player.rect.x -= x_change * WINDOW_WIDTH
+        player.rect.y -= y_change * WINDOW_HEIGHT
 
-    def change_room(self):
-        # TODO: Close exits until the enemies are defeated
+        # Change level sprites
+        all_sprites.remove(player.friendly_bullets)
+        player.friendly_bullets.empty()
+        all_sprites.remove(self.environmental_sprites)
+        all_sprites.remove(self.enemy_spawner.enemies)
+
         self.environmental_sprites, is_cleared, _ = self.rooms[self.player_location]
+        all_sprites.add(self.environmental_sprites)
 
         if not is_cleared:
             if self.player_location == self.boss_room_loc:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
             else:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=False)
+            self.lock_room(dir_exited)
         else:
             self.enemy_spawner.room_setup(is_cleared=True)
