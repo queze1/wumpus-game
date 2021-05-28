@@ -77,7 +77,7 @@ class EnemySpawner:
             else:
                 self.waves_left = 1
 
-    def update_enemies(self, all_sprites):
+    def spawn_enemies(self, all_sprites):
         """
         Spawns enemies. Before entering a room with enemies, call room_setup().
         Returns True if the room is cleared. Returns False if the room is not cleared.
@@ -103,14 +103,12 @@ class EnemySpawner:
                     self.enemies.add(enemy)
                     no_spawn.append(enemy.rect.inflate(20, 20))
 
-                self.waves_left -=1
+                self.waves_left -= 1
 
             return False
 
         elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
             return True
-
-        # Kill enemies
 
 
 class GameMap:
@@ -157,16 +155,17 @@ class GameMap:
                     exit_directions.append(direction)
 
             if room_loc == starting_room:
-                self.rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True]
+                self.rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True, exit_directions]
             # If the boss room has not been placed yet, and this room is a dead end, make this the boss room
             elif not self.boss_room_loc and (len(exit_directions) == 1):
                 self.boss_room_loc = room_loc
-                self.rooms[room_loc] = [load_room(BOSS_LEVEL_PATH, exit_directions), False]
+                self.rooms[room_loc] = [load_room(BOSS_LEVEL_PATH, exit_directions), False, exit_directions]
             else:
-                self.rooms[room_loc] = [load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions), False]
+                self.rooms[room_loc] = [load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions),
+                                        False, exit_directions]
 
         # Load starting room
-        self.environmental_sprites, _ = self.rooms[starting_room]
+        self.environmental_sprites, _, _ = self.rooms[starting_room]
 
     @staticmethod
     def check_exited(rect):
@@ -180,30 +179,26 @@ class GameMap:
             return Direction.UP
         return None
 
-    def is_cleared(self, room_loc=None):
-        if not room_loc:
-            room_loc = self.player_location
-        _, is_cleared = self.rooms[room_loc]
+    def is_cleared(self):
+        is_cleared = self.rooms[self.player_location][1]
         return is_cleared
 
-    def set_cleared(self, is_cleared, room_loc=None):
-        if not room_loc:
-            room_loc = self.player_location
-        self.rooms[room_loc][1] = is_cleared
+    def set_cleared(self, is_cleared):
+        self.rooms[self.player_location][1] = is_cleared
+
+    def lock_room(self):
+        pass
 
     def move_player(self, direction):
         x, y = self.player_location
         self.player_location = (x + direction[0], y + direction[1])
 
-    def change_room(self, room_loc=None):
-        if not room_loc:
-            room_loc = self.player_location
-
+    def change_room(self):
         # TODO: Close exits until the enemies are defeated
-        self.environmental_sprites, is_cleared = self.rooms[room_loc]
+        self.environmental_sprites, is_cleared, _ = self.rooms[self.player_location]
 
         if not is_cleared:
-            if room_loc == self.boss_room_loc:
+            if self.player_location == self.boss_room_loc:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
             else:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=False)

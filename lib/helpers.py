@@ -7,6 +7,7 @@ import pygame
 import config
 
 
+
 class MultiplicableTuple(tuple):
     """A tuple, but when it is multiplied by an integer it multiplies all the items in it instead."""
     def __mul__(self, other):

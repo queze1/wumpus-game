@@ -57,11 +57,11 @@ while running:
     all_sprites.clear(window, background)
     all_sprites.add(player.friendly_bullets)
     if not game_map.is_cleared():
-        is_cleared = game_map.enemy_spawner.update_enemies(all_sprites)
+        is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)
         game_map.set_cleared(is_cleared)
 
     all_sprites.add(game_map.enemy_spawner.enemies)
-    all_sprites.update(all_sprites)
+    all_sprites.update(all_sprites, player)
 
     rects = all_sprites.draw(window)
     pygame.display.update(rects)

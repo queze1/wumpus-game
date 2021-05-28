@@ -26,7 +26,7 @@ class Player(BaseSprite):
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
-    def update(self, all_sprites):
+    def update(self, all_sprites, player):
         # Movement
         x, y = 0, 0
         keys_pressed = pygame.key.get_pressed()
@@ -73,7 +73,7 @@ class Bullet(BaseSprite):
         super().__init__(image_path='assets/bullets.png', center=center)
         self.dir = direction
 
-    def update(self, all_sprites):
+    def update(self, all_sprites, player):
         x, y = self.dir * BULLET_MOVE_SPEED
         self.rect.move_ip(x, y)
 
