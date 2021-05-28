@@ -118,6 +118,7 @@ class GameMap:
         self.boss_room_loc = None
         self.player_location = starting_room
         self.environmental_sprites = pygame.sprite.Group()
+        self.temp_walls = pygame.sprite.Group()
         self.enemy_spawner = EnemySpawner()
 
         # Generate dungeon
@@ -186,28 +187,20 @@ class GameMap:
     def set_cleared(self, is_cleared):
         self.rooms[self.player_location][1] = is_cleared
 
-    def lock_room(self, exited_dir):
+    def lock_room(self, all_sprites):
+        # TODO: Make the doors at the exits thinner
         room_exit_dirs = self.rooms[self.player_location][2]
-        entered_dir = exited_dir * -1
-        print(entered_dir, exited_dir)
 
         for direction in room_exit_dirs:
-            print(direction)
-            if direction == entered_dir:
-                continue
-
+            print(f'door closed at {direction}')
             for x, y in DIR_TO_EXIT_COORDS[direction]:
-                print('wall added')
-                self.environmental_sprites.add(Wall((16 + (32 * x), 16 + (32 * y))))
+                self.temp_walls.add(Wall((16 + (32 * x), 16 + (32 * y))))
+            all_sprites.add(self.temp_walls)
 
-    def unlock_room(self):
-        room_exit_dirs = self.rooms[self.player_location][2]
-        unlock_locs = chain.from_iterable(
-            [[(16 + (32 * x), 16 + (32 * y)) for x, y in DIR_TO_EXIT_COORDS[direction]] for direction in room_exit_dirs]
-        )
-        for sprite in self.environmental_sprites:
-            if sprite.rect.center in unlock_locs:
-                self.environmental_sprites.remove(sprite)
+    def unlock_room(self, all_sprites):
+        print('doors unlocked')
+        all_sprites.remove(self.temp_walls)
+        self.temp_walls.empty()
 
     def handle_rooms(self, all_sprites, player):
         dir_exited = self.check_exited(player.rect)
@@ -218,23 +211,29 @@ class GameMap:
         x, y = self.player_location
         x_change, y_change = dir_exited
         self.player_location = (x + x_change, y + y_change)
-        player.rect.x -= x_change * WINDOW_WIDTH
-        player.rect.y -= y_change * WINDOW_HEIGHT
+        print(f'new location: {self.player_location}')
 
-        # Change level sprites
+        # Change sprites
         all_sprites.remove(player.friendly_bullets)
         player.friendly_bullets.empty()
         all_sprites.remove(self.environmental_sprites)
         all_sprites.remove(self.enemy_spawner.enemies)
-
         self.environmental_sprites, is_cleared, _ = self.rooms[self.player_location]
         all_sprites.add(self.environmental_sprites)
+
+        if not is_cleared:
+            # Move the player further into the room so that the player doesn't clip into them
+            player.rect.x -= x_change * (WINDOW_WIDTH - 40)
+            player.rect.y -= y_change * (WINDOW_HEIGHT - 40)
+        else:
+            player.rect.x -= x_change * WINDOW_WIDTH
+            player.rect.y -= y_change * WINDOW_HEIGHT
 
         if not is_cleared:
             if self.player_location == self.boss_room_loc:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
             else:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=False)
-            self.lock_room(dir_exited)
+            self.lock_room(all_sprites)
         else:
             self.enemy_spawner.room_setup(is_cleared=True)

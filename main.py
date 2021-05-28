@@ -42,7 +42,7 @@ while running:
     if not game_map.is_cleared():
         is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)
         if is_cleared:
-            game_map.unlock_room()
+            game_map.unlock_room(all_sprites)
             game_map.set_cleared(True)
 
     all_sprites.add(game_map.enemy_spawner.enemies)

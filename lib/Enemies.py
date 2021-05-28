@@ -1,8 +1,12 @@
 import pygame
 
-from lib.Player import Bullet, Player
+from lib.Player import Bullet
 from lib.helpers import BaseSprite
 from lib.Obstacles import Wall
+
+
+TEST_ENEMY_SPEED = 3
+BOSS_SPEED = 4
 
 
 class BaseEnemy(BaseSprite):
@@ -25,7 +29,13 @@ class TestEnemy(BaseEnemy):
                     self.kill()
                     break
 
-        """
+        enemy_vector = pygame.Vector2(self.rect.center)
+        player_vector = pygame.Vector2(player.rect.center)
+        if enemy_vector == player_vector:
+            return
+
+        x, y = (player_vector - enemy_vector).normalize() * TEST_ENEMY_SPEED
+
         # Wall collision detection
         walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
         self.rect.y += y
@@ -40,7 +50,6 @@ class TestEnemy(BaseEnemy):
                 self.rect.right = wall.rect.left
             if x < 0:
                 self.rect.left = wall.rect.right
-        """
 
 
 class TestBoss(BaseEnemy):
@@ -58,4 +67,26 @@ class TestBoss(BaseEnemy):
                 if self.hp == 0:
                     self.kill()
                     break
+
+        enemy_vector = pygame.Vector2(self.rect.center)
+        player_vector = pygame.Vector2(player.rect.center)
+        if enemy_vector == player_vector:
+            return
+
+        x, y = (player_vector - enemy_vector).normalize() * TEST_ENEMY_SPEED
+
+        # Wall collision detection
+        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
+        self.rect.y += y
+        for wall in pygame.sprite.spritecollide(self, walls, False):
+            if y > 0:
+                self.rect.bottom = wall.rect.top
+            if y < 0:
+                self.rect.top = wall.rect.bottom
+        self.rect.x += x
+        for wall in pygame.sprite.spritecollide(self, walls, False):
+            if x > 0:
+                self.rect.right = wall.rect.left
+            if x < 0:
+                self.rect.left = wall.rect.right
 
