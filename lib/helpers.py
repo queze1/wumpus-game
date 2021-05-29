@@ -5,7 +5,7 @@ This module provides access to several useful constants, helper functions and cl
 import pygame
 
 import config
-
+from lib.Obstacles import Wall
 
 
 class MultiplicableTuple(tuple):
@@ -31,6 +31,21 @@ class BaseSprite(pygame.sprite.Sprite):
         if image_path:
             self.image = pygame.image.load(image_path).convert()
         self.rect = self.image.get_rect(center=center)
+
+    def move_respecting_walls(self, x, y, all_sprites):
+        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
+        self.rect.y += y
+        for wall in pygame.sprite.spritecollide(self, walls, False):
+            if y > 0:
+                self.rect.bottom = wall.rect.top
+            if y < 0:
+                self.rect.top = wall.rect.bottom
+        self.rect.x += x
+        for wall in pygame.sprite.spritecollide(self, walls, False):
+            if x > 0:
+                self.rect.right = wall.rect.left
+            if x < 0:
+                self.rect.left = wall.rect.right
 
 
 WINDOW_RECT = pygame.Rect(0, 0, config.WINDOW_WIDTH, config.WINDOW_HEIGHT)

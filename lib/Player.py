@@ -42,20 +42,8 @@ class Player(BaseSprite):
             x /= 2 ** 0.5
             y /= 2 ** 0.5
 
-        # Wall collision detection
-        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
-        self.rect.y += y
-        for wall in pygame.sprite.spritecollide(self, walls, False):
-            if y > 0: 
-                self.rect.bottom = wall.rect.top
-            if y < 0:
-                self.rect.top = wall.rect.bottom
-        self.rect.x += x
-        for wall in pygame.sprite.spritecollide(self, walls, False):
-            if x > 0: 
-                self.rect.right = wall.rect.left
-            if x < 0:
-                self.rect.left = wall.rect.right
+        # Move with wall collision
+        self.move_respecting_walls(x, y, all_sprites)
 
         # Shoot bullets
         self.current_attack_delay -= 1
@@ -70,7 +58,7 @@ class Player(BaseSprite):
 
 class Bullet(BaseSprite):
     def __init__(self, direction, center=(0, 0)):
-        super().__init__(image_path='assets/bullets.png', center=center)
+        super().__init__(image_path='assets/bullet.png', center=center)
         self.dir = direction
 
     def update(self, all_sprites, player):

@@ -1,8 +1,12 @@
 """This module provides access to several environmental object classes."""
 
-from lib.helpers import BaseSprite
+import pygame
+
+# Do not import from lib.helpers because lib.helpers imports from here for easy collision detection
 
 
-class Wall(BaseSprite):
+class Wall(pygame.sprite.Sprite):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/wall.png', center=center)
+        super().__init__()
+        self.image = pygame.image.load('assets/wall.png').convert()
+        self.rect = self.image.get_rect(center=center)
