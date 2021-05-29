@@ -2,7 +2,7 @@
 
 import pygame
 
-from lib.helpers import BaseSprite, Direction, WINDOW_RECT
+from lib.helpers import BaseSprite, Direction, WINDOW_RECT, change_action
 from lib.Obstacles import Wall
 
 PLAYER_MOVE_SPEED = 5
@@ -21,7 +21,9 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/stevencrowder.png', center=center)
+        image_assets = [('idle', 'assets/player/player_idle.png', [40,40,40,40]),
+                        ('walking', 'assets/player/player_walking.png', [7, 7, 7, 7])]
+        super().__init__(image_assets=image_assets, center=center)
         self.attack_delay = 20
         self.current_attack_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
@@ -55,10 +57,22 @@ class Player(BaseSprite):
             bullet = Bullet(bullet_dir, center=self.rect.center)
             self.friendly_bullets.add(bullet)
 
+        if x > 0:
+            self.flip = False
+            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+        elif abs(y) > 0:
+            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+        elif x < 0:
+            self.flip = True
+            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+        else: 
+            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
+
+        self.update_animation()
 
 class Bullet(BaseSprite):
     def __init__(self, direction, center=(0, 0)):
-        super().__init__(image_path='assets/bullet.png', center=center)
+        super().__init__(image_assets='assets/bullet.png', center=center)
         self.dir = direction
 
     def update(self, all_sprites, player):

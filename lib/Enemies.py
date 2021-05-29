@@ -25,7 +25,7 @@ class BaseEnemy(BaseSprite):
 
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/enemy.png', center=center)
+        super().__init__(image_assets='assets/enemy.png', center=center)
         self.hp = 1
 
     def update(self, all_sprites, player):
@@ -44,7 +44,7 @@ class TestEnemy(BaseEnemy):
 
 class TestBoss(BaseEnemy):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_path='assets/cat.png', center=center)
+        super().__init__(image_assets='assets/cat.png', center=center)
         self.hp = 10
 
     def update(self, all_sprites, player):
