@@ -69,7 +69,7 @@ class BaseSprite(pygame.sprite.Sprite):
     def load_animation(self, image_assets):
         self.image_assets = {}
         for image in image_assets:
-            sprites = strip_from_sheet(pygame.image.load(image[1]), (0,0), (32,32), 4)
+            sprites = strip_from_sheet(pygame.image.load(image[1]), (0,0), (32,32), len(image[2]))
             self.animation_frames.update({f'{image[0]}_{sprites.index(sprite) + 1}' : sprite for sprite in sprites})
             print(self.animation_frames)
 

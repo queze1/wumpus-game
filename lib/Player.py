@@ -22,7 +22,7 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
         image_assets = [('idle', 'assets/player/player_idle.png', [40,40,40,40]),
-                        ('walking', 'assets/player/player_walking.png', [7, 7, 7, 7])]
+                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15])]
         super().__init__(image_assets=image_assets, center=center)
         self.attack_delay = 20
         self.current_attack_delay = 0
