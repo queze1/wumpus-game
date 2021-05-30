@@ -39,7 +39,7 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
     return frames
 
 class BaseSprite(pygame.sprite.Sprite):
-    def __init__(self, image_assets=None, center=(0, 0)):
+    def __init__(self, image_assets=None, center=(0, 0), alpha=False):
         super().__init__()
         self.flip = False
         self.state = 'idle'
@@ -47,14 +47,18 @@ class BaseSprite(pygame.sprite.Sprite):
         self.animation_frames = {}
 
         if isinstance(image_assets, str):
-            self.image = pygame.image.load(image_assets).convert()
+            if not alpha: 
+                self.image = pygame.image.load(image_assets).convert()
+            else: 
+                self.image = pygame.image.load(image_assets).convert_alpha()
         elif isinstance(image_assets, list):
 #           image_assets = [('idle', 'assets/player/player_idle.png', [7,7]),
 #                           ('walking', 'assets/player/player_walking.png', [7,7,40])]
             self.load_animation(image_assets)
             self.image = self.animation_frames[self.image_assets[self.state][self.animation_frame]]
 
-        self.rect = self.image.get_rect(center=center)
+        if self.image:
+            self.rect = self.image.get_rect(center=center)
 
     def update_animation(self):
         self.animation_frame +=1

@@ -28,7 +28,7 @@ class TestEnemy(BaseEnemy):
         super().__init__(image_assets='assets/enemy.png', center=center)
         self.hp = 1
 
-    def update(self, all_sprites, player):
+    def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(all_sprites, self.hp)
         if not self.hp:
             return
@@ -47,7 +47,7 @@ class TestBoss(BaseEnemy):
         super().__init__(image_assets='assets/cat.png', center=center)
         self.hp = 10
 
-    def update(self, all_sprites, player):
+    def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(all_sprites, self.hp)
 
         enemy_vector = pygame.Vector2(self.rect.center)

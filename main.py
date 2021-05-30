@@ -3,7 +3,7 @@ import pygame
 from config import *
 from lib.Player import Player
 from lib.GameMap import GameMap
-
+from lib.Interface import Minimap
 
 pygame.init()
 
@@ -19,11 +19,14 @@ background = pygame.image.load('assets/grokwallpaper.png').convert()
 
 # Initialize map
 game_map = GameMap(12)
+minimap = Minimap(game_map, center = (WINDOW_WIDTH - 84, 84))
+minimap.render_minimap(game_map)
 
 # maybe use LayeredUpdates()?
 all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
 all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)
+all_sprites.add(minimap)
 
 
 running = True
@@ -34,11 +37,15 @@ while running:
             break
 
     # Level Handling
-    game_map.handle_rooms(all_sprites, player)
+    game_map.handle_rooms(all_sprites, player, minimap)
 
     # Add and update sprites
     all_sprites.clear(window, background)
     all_sprites.add(player.friendly_bullets)
+
+    all_sprites.remove(minimap)
+    all_sprites.add(minimap)
+
     if not game_map.is_cleared():
         is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)
         if is_cleared:
@@ -46,7 +53,7 @@ while running:
             game_map.set_cleared(True)
 
     all_sprites.add(game_map.enemy_spawner.enemies)
-    all_sprites.update(all_sprites, player)
+    all_sprites.update(all_sprites, player, game_map)
 
     rects = all_sprites.draw(window)
     pygame.display.update(rects)

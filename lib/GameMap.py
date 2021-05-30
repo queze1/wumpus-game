@@ -167,6 +167,7 @@ class GameMap:
 
         # Load starting room
         self.environmental_sprites, _, _ = self.rooms[starting_room]
+        print(self.rooms.keys())
 
     @staticmethod
     def check_exited(rect):
@@ -202,7 +203,7 @@ class GameMap:
         all_sprites.remove(self.temp_walls)
         self.temp_walls.empty()
 
-    def handle_rooms(self, all_sprites, player):
+    def handle_rooms(self, all_sprites, player, minimap):
         dir_exited = self.check_exited(player.rect)
         if not dir_exited:
             return
@@ -237,3 +238,5 @@ class GameMap:
             self.lock_room(all_sprites)
         else:
             self.enemy_spawner.room_setup(is_cleared=True)
+
+        minimap.render_minimap(self)
