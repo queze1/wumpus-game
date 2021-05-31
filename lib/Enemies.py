@@ -74,6 +74,10 @@ def a_star(start_coord, dest_coord, all_sprites):
     return [(x * 32 + 16, y * 32 + 16) for x, y in grid_path]
 
 
+# TODO: try theta*
+# TODO: add inertia to paths so that enemies do not keep on switching paths
+
+
 class BaseEnemy(BaseSprite):
     hp = None
 
