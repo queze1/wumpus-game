@@ -24,6 +24,7 @@ class Direction:
     RIGHT = MultiplicableTuple([1, 0])
     UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
 
+
 def strip_from_sheet(sheet, start, size, columns, rows=1):
     """
     Strips individual frames from a sprite sheet given a start location,
@@ -38,6 +39,7 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
             frames.append(image)
     return frames
 
+
 class BaseSprite(pygame.sprite.Sprite):
     def __init__(self, image_assets=None, center=(0, 0)):
         super().__init__()
@@ -45,6 +47,7 @@ class BaseSprite(pygame.sprite.Sprite):
         self.state = 'idle'
         self.animation_frame = 0
         self.animation_frames = {}
+        self.image_assets = {}
 
         if isinstance(image_assets, str):
             self.image = pygame.image.load(image_assets).convert()
@@ -67,7 +70,6 @@ class BaseSprite(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.image, False, False)
 
     def load_animation(self, image_assets):
-        self.image_assets = {}
         for image in image_assets:
             sprites = strip_from_sheet(pygame.image.load(image[1]), (0,0), (32,32), 4)
             self.animation_frames.update({f'{image[0]}_{sprites.index(sprite) + 1}' : sprite for sprite in sprites})
@@ -95,10 +97,12 @@ class BaseSprite(pygame.sprite.Sprite):
             if x < 0:
                 self.rect.left = wall.rect.right
 
+
 def change_action(action_var,frame,new_value):
     if action_var != new_value:
         action_var = new_value
         frame = 0
     return action_var,frame            
+
 
 WINDOW_RECT = pygame.Rect(0, 0, config.WINDOW_WIDTH, config.WINDOW_HEIGHT)

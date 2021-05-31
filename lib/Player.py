@@ -57,6 +57,7 @@ class Player(BaseSprite):
             bullet = Bullet(bullet_dir, center=self.rect.center)
             self.friendly_bullets.add(bullet)
 
+        # Animation
         if x > 0:
             self.flip = False
             self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
@@ -69,6 +70,7 @@ class Player(BaseSprite):
             self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
 
         self.update_animation()
+
 
 class Bullet(BaseSprite):
     def __init__(self, direction, center=(0, 0)):
