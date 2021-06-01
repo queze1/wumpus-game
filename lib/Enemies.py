@@ -120,23 +120,23 @@ class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/enemy.png', center=center)
         self.hp = 1
-        self.dots = pygame.sprite.Group()
+        # self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(all_sprites, self.hp)
         if not self.hp:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
+            # all_sprites.remove(self.dots)
+            # self.dots.empty()
             return
 
         # TODO: make paths have inertia
         path = theta_star(self.rect, player.rect.center, all_sprites)
         if path:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
-            for center in path:
-                self.dots.add(TestDot(center))
-            all_sprites.add(self.dots)
+            # all_sprites.remove(self.dots)
+            # self.dots.empty()
+            # for center in path:
+            #     self.dots.add(TestDot(center))
+            # all_sprites.add(self.dots)
 
             vector = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
             x, y = vector.normalize() * TEST_ENEMY_SPEED
@@ -147,18 +147,18 @@ class TestBoss(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/cat.png', center=center)
         self.hp = 10
-        self.dots = pygame.sprite.Group()
+        # self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(all_sprites, self.hp)
 
         path = theta_star(self.rect, player.rect.center, all_sprites)
         if path:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
-            for center in path:
-                self.dots.add(TestDot(center))
-            all_sprites.add(self.dots)
+            # all_sprites.remove(self.dots)
+            # self.dots.empty()
+            # for center in path:
+            #     self.dots.add(TestDot(center))
+            # all_sprites.add(self.dots)
 
             vector = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
             x, y = vector.normalize() * TEST_ENEMY_SPEED

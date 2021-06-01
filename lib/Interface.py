@@ -11,13 +11,16 @@ class Minimap(BaseSprite):
                          [location[1] for location in game_map.rooms.keys()])
         lowest_xy = min([location[0] for location in game_map.rooms.keys()] + 
                         [location[1] for location in game_map.rooms.keys()])
-        self.layout_size = highest_xy - lowest_xy #how wide/tall will it be
+        self.layout_size = highest_xy - lowest_xy  # how wide/tall will it be
                             
         self.room_size = int((self.rect.width - 40) / self.layout_size)
         
-        self.room_types = {'normal' : scale(pygame.image.load('assets/minimap/miniroom.png'), (self.room_size, self.room_size)),
-                           'player' : scale(pygame.image.load('assets/minimap/playerroom.png'), (self.room_size, self.room_size)),
-                           'cleared' : scale(pygame.image.load('assets/minimap/clearedroom.png'), (self.room_size, self.room_size))}
+        self.room_types = {'normal': scale(pygame.image.load('assets/minimap/miniroom.png'),
+                                           (self.room_size, self.room_size)),
+                           'player': scale(pygame.image.load('assets/minimap/playerroom.png'),
+                                           (self.room_size, self.room_size)),
+                           'cleared': scale(pygame.image.load('assets/minimap/clearedroom.png'),
+                                            (self.room_size, self.room_size))}
 
     def render_minimap(self, game_map):
         locations = [location for location in game_map.rooms.keys()]
@@ -30,7 +33,7 @@ class Minimap(BaseSprite):
 
         for location in locations:
             x, y = location
-            blit_loc = ((x * (self.room_size)) + 20, (y * (self.room_size)) + 20)
+            blit_loc = ((x * self.room_size) + 20, (y * self.room_size) + 20)
 
             if location == player_location:
                 self.render_room(self.room_types['player'], blit_loc)
