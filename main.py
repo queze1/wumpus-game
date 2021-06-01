@@ -2,29 +2,30 @@ import pygame
 
 from config import *
 from lib.Player import Player
+from lib.Background import Background
 from lib.GameMap import GameMap
 from lib.Interface import Minimap
-from lib.Particles import ParticleSpawner
 
 pygame.init()
 
 # Set up window & FPS clock
 clock = pygame.time.Clock()
 
-pygame.display.set_caption("wumpus game")
+pygame.display.set_caption("game")
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # Create objects
 player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
-background = pygame.image.load('assets/grokwallpaper.png').convert()
+background = Background()
 
 # Initialize map
 game_map = GameMap(12)
-minimap = Minimap(game_map, center = (WINDOW_WIDTH - 84, 84))
+minimap = Minimap(game_map, center = (WINDOW_WIDTH - 70, 70))
 minimap.render_minimap(game_map)
 
 # maybe use LayeredUpdates()?
 all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
+all_sprites.add(background)
 all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)
 all_sprites.add(minimap)
@@ -41,7 +42,7 @@ while running:
     game_map.handle_rooms(all_sprites, player, minimap)
 
     # Add and update sprites
-    all_sprites.clear(window, background)
+    all_sprites.clear(window, background.image)
     all_sprites.add(player.friendly_bullets)
     all_sprites.remove(minimap)
     all_sprites.add(minimap)

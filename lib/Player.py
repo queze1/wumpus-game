@@ -22,16 +22,16 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 
 
 bullet_particles = {
-    'velocity' : ((-3, 3), (-2, 2)),
-    'radius' : (3,4),
-    'colour' : [(255,255,0),(255,0,0),(255,69,0)],
-    'decay' : 0.5
+    'velocity' : ((-1, 1), (-1, 1)),
+    'radius' : (3,5),
+    'colour' : [(255,236,214)],
+    'decay' : 0.4
 }
 
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
-        image_assets = [('idle', 'assets/player/player_idle.png', [40,40,40,40]),
-                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15])]
+        image_assets = [('idle', 'assets/player/player_idle.png', [40,40,40,40], (12,32)),
+                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15], (12,32))]
         super().__init__(image_assets=image_assets, center=center)
         self.hp = 10
         self.attack_delay = 20
