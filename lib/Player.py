@@ -34,7 +34,6 @@ class Player(BaseSprite):
         keys_pressed = pygame.key.get_pressed()
         for key in KEY_TO_DIR:
             if keys_pressed[key]:
-                # MultiplicableTuple makes multiplying the tuple multiply everything inside of it instead
                 x_change, y_change = KEY_TO_DIR[key] * PLAYER_MOVE_SPEED
                 x += x_change
                 y += y_change
