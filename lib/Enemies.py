@@ -118,7 +118,7 @@ class TestDot(BaseSprite):
 
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_assets='assets/cat.png', center=center)
+        super().__init__(image_assets='assets/enemy.png', center=center)
         self.hp = 1
         self.dots = pygame.sprite.Group()
 
