@@ -7,7 +7,6 @@ import pygame
 import config
 from lib.Obstacles import Wall
 
-
 class MultiplicableTuple(tuple):
     """A tuple, but when it is multiplied by an integer it multiplies all the items in it instead."""
     def __mul__(self, other):
@@ -45,6 +44,7 @@ class BaseSprite(pygame.sprite.Sprite):
         self.state = 'idle'
         self.animation_frame = 0
         self.animation_frames = {}
+        self.particles = pygame.sprite.Group()
 
         if isinstance(image_assets, str):
             if not alpha: 

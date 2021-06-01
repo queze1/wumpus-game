@@ -1,9 +1,11 @@
-"""This module provides access to several classes that are associated with the player character."""
+"""This module provides access to several classes that are assetsssociated with the player character."""
+from random import randint
 
 import pygame
 
 from lib.helpers import BaseSprite, Direction, WINDOW_RECT, change_action
 from lib.Obstacles import Wall
+from lib.Particles import ParticleSpawner
 
 PLAYER_MOVE_SPEED = 5
 BULLET_MOVE_SPEED = 20
@@ -18,6 +20,13 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_DOWN: Direction.DOWN,
                 pygame.K_RIGHT: Direction.RIGHT}
 
+
+bullet_particles = {
+    'velocity' : ((-3, 3), (-2, 2)),
+    'radius' : (3,4),
+    'colour' : [(255,255,0),(255,0,0),(255,69,0)],
+    'decay' : 0.5
+}
 
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
@@ -77,6 +86,9 @@ class Bullet(BaseSprite):
         self.dir = direction
 
     def update(self, all_sprites, player, game_map):
+        self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
+
+        all_sprites.add(self.particles)
         x, y = self.dir * BULLET_MOVE_SPEED
         self.rect.move_ip(x, y)
 
@@ -88,3 +100,4 @@ class Bullet(BaseSprite):
         if not self.rect.colliderect(WINDOW_RECT):
             self.kill()
             return
+

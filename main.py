@@ -4,6 +4,7 @@ from config import *
 from lib.Player import Player
 from lib.GameMap import GameMap
 from lib.Interface import Minimap
+from lib.Particles import ParticleSpawner
 
 pygame.init()
 
@@ -28,8 +29,8 @@ all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)
 all_sprites.add(minimap)
 
-
 running = True
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -42,7 +43,6 @@ while running:
     # Add and update sprites
     all_sprites.clear(window, background)
     all_sprites.add(player.friendly_bullets)
-
     all_sprites.remove(minimap)
     all_sprites.add(minimap)
 

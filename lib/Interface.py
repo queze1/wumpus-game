@@ -16,7 +16,7 @@ class Minimap(BaseSprite):
         self.room_size = int((self.rect.width - 40) / self.layout_size)
         
         self.room_types = {'normal' : scale(pygame.image.load('assets/minimap/miniroom.png'), (self.room_size, self.room_size)),
-                           'player' : scale(pygame.image.load('assets/minimap/playerroom.png'), (self.room_size, self.room_size)).convert_alpha(),
+                           'player' : scale(pygame.image.load('assets/minimap/playerroom.png'), (self.room_size, self.room_size)),
                            'cleared' : scale(pygame.image.load('assets/minimap/clearedroom.png'), (self.room_size, self.room_size))}
 
     def render_minimap(self, game_map):
