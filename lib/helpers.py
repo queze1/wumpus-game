@@ -8,20 +8,22 @@ import config
 from lib.Obstacles import Wall
 
 
-class MultiplicableTuple(tuple):
-    """A tuple, but when it is multiplied by an integer it multiplies all the items in it instead."""
-    def __mul__(self, other):
-        if isinstance(other, int):
-            return MultiplicableTuple([item*other for item in self])
+class Vector(pygame.math.Vector2):
+    def __eq__(self, other):
+        if hasattr(other, "__getitem__") and len(other) == 2:
+            return self.x == other[0] and self.y == other[1]
         else:
-            raise TypeError(f"can't multiply sequence by non-int of type '{type(self).__name__}'")
+            return False
+
+    def __hash__(self):
+        return hash((self.x, self.y))
 
 
 class Direction:
-    UP = MultiplicableTuple([0, -1])
-    DOWN = MultiplicableTuple([0, 1])
-    LEFT = MultiplicableTuple([-1, 0])
-    RIGHT = MultiplicableTuple([1, 0])
+    UP = Vector(0, -1)
+    DOWN = Vector(0, 1)
+    LEFT = Vector(-1, 0)
+    RIGHT = Vector(1, 0)
     UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
 
 
@@ -35,7 +37,7 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
         for i in range(columns):
             location = (start[0]+size[0]*i, start[1]+size[1]*j)
             image = sheet.subsurface(pygame.Rect(location, size))
-            image = pygame.transform.scale(image, (64,64))
+            image = pygame.transform.scale(image, (64, 64))
             frames.append(image)
     return frames
 
@@ -60,7 +62,7 @@ class BaseSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=center)
 
     def update_animation(self):
-        self.animation_frame +=1
+        self.animation_frame += 1
         if self.animation_frame >= len(self.image_assets[self.state]):
             self.animation_frame = 0
         self.image = self.animation_frames[self.image_assets[self.state][self.animation_frame]]
@@ -71,8 +73,8 @@ class BaseSprite(pygame.sprite.Sprite):
 
     def load_animation(self, image_assets):
         for image in image_assets:
-            sprites = strip_from_sheet(pygame.image.load(image[1]), (0,0), (32,32), 4)
-            self.animation_frames.update({f'{image[0]}_{sprites.index(sprite) + 1}' : sprite for sprite in sprites})
+            sprites = strip_from_sheet(pygame.image.load(image[1]), (0, 0), (32, 32), 4)
+            self.animation_frames.update({f'{image[0]}_{sprites.index(sprite) + 1}': sprite for sprite in sprites})
             print(self.animation_frames)
 
             self.image_assets[image[0]] = []
@@ -98,11 +100,11 @@ class BaseSprite(pygame.sprite.Sprite):
                 self.rect.left = wall.rect.right
 
 
-def change_action(action_var,frame,new_value):
+def change_action(action_var, frame, new_value):
     if action_var != new_value:
         action_var = new_value
         frame = 0
-    return action_var,frame            
+    return action_var, frame
 
 
 WINDOW_RECT = pygame.Rect(0, 0, config.WINDOW_WIDTH, config.WINDOW_HEIGHT)

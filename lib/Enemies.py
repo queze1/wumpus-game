@@ -1,3 +1,4 @@
+from itertools import chain
 import queue
 
 import pygame
@@ -12,37 +13,37 @@ BOSS_SPEED = 4
 
 
 def a_star_heuristic(loc, dest_loc):
-    x, y = loc
-    dest_x, dest_y = dest_loc
-    return (dest_x - x) ** 2 + (dest_y - y) ** 2
+    # Cartesian distance
+    return (pygame.Vector2(dest_loc) - pygame.Vector2(loc)).length()
 
 
-def coord_to_grid(coord):
-    x, y = coord
-    return x // 32, y // 32
+def is_in_los(loc, dest_loc, blocking_walls):
+    return not any(wall.clipline(loc, dest_loc) for wall in blocking_walls)
 
 
-def generate_neighbours(loc):
-    x, y = loc
-    neighbours = [(x - 1, y, 1), (x + 1, y, 1), (x, y - 1, 1), (x, y + 1, 1)]
-    neighbours += [(x - 1, y - 1, 2), (x + 1, y - 1, 2), (x - 1, y + 1, 2), (x + 1, y + 1, 2)]
-    return {(x, y): cost for x, y, cost in neighbours if (0 <= x <= 26 and 0 <= y <= 14)}
+def find_neighbours(loc, blocking_walls, dest):
+    important_points = set(chain.from_iterable(
+        [(wall.bottomleft, wall.bottomright, wall.topleft, wall.topright) for wall in blocking_walls]
+    ))
+    important_points.add(dest)
+    neighbours = [(point, a_star_heuristic(loc, point)) for point in important_points
+                  if is_in_los(loc, point, blocking_walls)]
+    return neighbours
 
 
-def grid_a_star(start_coord, dest_coord, all_sprites):
-    """
-    Initial A* with grid. Returns path from destination to start.
-    """
-    start = coord_to_grid(start_coord)
-    dest = coord_to_grid(dest_coord)
-    walls = [sprite.rect.center for sprite in all_sprites if isinstance(sprite, Wall)]
+def a_star(start_rect, dest, all_sprites):
+    # Increase the size of the walls to account of the hitbox
+    blocking_walls = [sprite.rect.inflate(start_rect.width, start_rect.width) for sprite in all_sprites
+                      if isinstance(sprite, Wall) and
+                      0 < (sprite.rect.centerx // 32) < 26 and
+                      0 < (sprite.rect.centery // 32) < 14]
 
     open_queue = queue.PriorityQueue()
-    open_queue.put((0, start))
-    closed_set = set(map(coord_to_grid, walls))
+    open_queue.put((0, start_rect.center))
+    closed_set = set()
 
     # For node n, g_score[n] is the cost of the cheapest path from start to n currently known.
-    g_score = {start: 0}
+    g_score = {start_rect.center: 0}
     came_from = {}
 
     while not open_queue.empty():
@@ -50,16 +51,15 @@ def grid_a_star(start_coord, dest_coord, all_sprites):
         if current == dest:
             # Reconstruct path in reverse order
             path = []
-            while current != start:
+            while current != start_rect.center:
                 path.append(current)
                 current = came_from[current]
             return list(reversed(path))
 
         closed_set.add(current)
-        for neighbour, cost in generate_neighbours(current).items():
+        for neighbour, cost in find_neighbours(current, blocking_walls, dest):
             if neighbour in closed_set:
                 continue
-
             tentative_g_score = g_score[current] + cost
             if tentative_g_score < g_score.get(neighbour, float('inf')):
                 g_score[neighbour] = tentative_g_score
@@ -67,15 +67,6 @@ def grid_a_star(start_coord, dest_coord, all_sprites):
                 open_queue.put((a_star_heuristic(neighbour, dest), neighbour))
 
     return None
-
-
-def a_star(start_coord, dest_coord, all_sprites):
-    grid_path = grid_a_star(start_coord, dest_coord, all_sprites)
-    return [(x * 32 + 16, y * 32 + 16) for x, y in grid_path]
-
-
-# TODO: try theta*
-# TODO: add inertia to paths so that enemies do not keep on switching paths
 
 
 class BaseEnemy(BaseSprite):
@@ -112,18 +103,18 @@ class TestEnemy(BaseEnemy):
             self.dots.empty()
             return
 
+        path = a_star(self.rect, player.rect.center, all_sprites)
+
         all_sprites.remove(self.dots)
         self.dots.empty()
-        path = a_star(self.rect.center, player.rect.center, all_sprites)
         for center in path:
-            self.dots.add(TestDot(center=center))
+            self.dots.add(TestDot(center))
         all_sprites.add(self.dots)
 
-        if path:
-            enemy_vector = pygame.Vector2(self.rect.center)
-            path_vector = pygame.Vector2(path[0])
-            x, y = (path_vector - enemy_vector).normalize() * TEST_ENEMY_SPEED
-            self.move_respecting_walls(x, y, all_sprites)
+        enemy_vector = pygame.Vector2(self.rect.center)
+        path_vector = pygame.Vector2(path[0])
+        x, y = (path_vector - enemy_vector).normalize() * TEST_ENEMY_SPEED
+        self.move_respecting_walls(x, y, all_sprites)
 
 
 class TestBoss(BaseEnemy):
