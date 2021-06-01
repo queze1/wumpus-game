@@ -7,21 +7,25 @@ import pygame
 import config
 from lib.Obstacles import Wall
 
-class MultiplicableTuple(tuple):
-    """A tuple, but when it is multiplied by an integer it multiplies all the items in it instead."""
-    def __mul__(self, other):
-        if isinstance(other, int):
-            return MultiplicableTuple([item*other for item in self])
+
+class Vector(pygame.math.Vector2):
+    def __eq__(self, other):
+        if hasattr(other, "__getitem__") and len(other) == 2:
+            return self.x == other[0] and self.y == other[1]
         else:
-            raise TypeError(f"can't multiply sequence by non-int of type '{type(self).__name__}'")
+            return False
+
+    def __hash__(self):
+        return hash((self.x, self.y))
 
 
 class Direction:
-    UP = MultiplicableTuple([0, -1])
-    DOWN = MultiplicableTuple([0, 1])
-    LEFT = MultiplicableTuple([-1, 0])
-    RIGHT = MultiplicableTuple([1, 0])
+    UP = Vector(0, -1)
+    DOWN = Vector(0, 1)
+    LEFT = Vector(-1, 0)
+    RIGHT = Vector(1, 0)
     UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
+
 
 def strip_from_sheet(sheet, start, size, columns, rows=1):
     """
@@ -38,6 +42,7 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
             frames.append(image)
     return frames
 
+
 class BaseSprite(pygame.sprite.Sprite):
     def __init__(self, image_assets=None, center=(0, 0), alpha=False):
         super().__init__()
@@ -48,9 +53,9 @@ class BaseSprite(pygame.sprite.Sprite):
         self.particles = pygame.sprite.Group()
 
         if isinstance(image_assets, str):
-            if not alpha: 
+            if not alpha:
                 self.image = pygame.image.load(image_assets).convert()
-            else: 
+            else:
                 self.image = pygame.image.load(image_assets).convert_alpha()
         elif isinstance(image_assets, list):
 #           image_assets = [('idle', 'assets/player/player_idle.png', [7,7], [width, height]),
@@ -62,7 +67,7 @@ class BaseSprite(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=center)
 
     def update_animation(self):
-        self.animation_frame +=1
+        self.animation_frame += 1
         if self.animation_frame >= len(self.image_assets[self.state]):
             self.animation_frame = 0
         self.image = self.animation_frames[self.image_assets[self.state][self.animation_frame]]
