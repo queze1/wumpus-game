@@ -1,4 +1,4 @@
-"""This module provides access to several classes that are assetsssociated with the player character."""
+"""This module provides access to several classes that are associated with the player character."""
 
 import pygame
 
@@ -21,16 +21,17 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 
 
 bullet_particles = {
-    'velocity' : ((-1, 1), (-1, 1)),
-    'radius' : (3,5),
-    'colour' : [(255,236,214)],
-    'decay' : 0.4
+    'velocity': ((-1, 1), (-1, 1)),
+    'radius': (3, 5),
+    'colour': [(255, 236, 214)],
+    'decay': 0.4
 }
+
 
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
-        image_assets = [('idle', 'assets/player/player_idle.png', [40,40,40,40], (12,32)),
-                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15], (12,32))]
+        image_assets = [('idle', 'assets/player/player_idle.png', [40, 40, 40, 40], (12, 32)),
+                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15], (12, 32))]
         super().__init__(image_assets=image_assets, center=center)
         self.hp = 10
         self.attack_delay = 20
@@ -39,22 +40,19 @@ class Player(BaseSprite):
 
     def update(self, all_sprites, player, game_map):
         # Movement
-        x, y = 0, 0
+        x_y = pygame.Vector2()
         keys_pressed = pygame.key.get_pressed()
         for key in KEY_TO_DIR:
             if keys_pressed[key]:
-                # MultiplicableTuple makes multiplying the tuple multiply everything inside of it instead
-                x_change, y_change = KEY_TO_DIR[key] * PLAYER_MOVE_SPEED
-                x += x_change
-                y += y_change
+                x_y += KEY_TO_DIR[key]
 
-        # If the player is moving diagonally, divide their speeds by sqrt(2) to keep the speed the same
-        if x and y:
-            x /= 2 ** 0.5
-            y /= 2 ** 0.5
+        # Normalize movement
+        if x_y:
+            x_y = x_y.normalize() * PLAYER_MOVE_SPEED
+        x, y = x_y
 
         # Move with wall collision
-        self.move_respecting_walls(x, y, all_sprites)
+        self.move_respecting_walls(x_y, all_sprites)
 
         # Shoot bullets
         self.current_attack_delay -= 1
@@ -90,8 +88,7 @@ class Bullet(BaseSprite):
         self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
 
         all_sprites.add(self.particles)
-        x, y = self.dir * BULLET_MOVE_SPEED
-        self.rect.move_ip(x, y)
+        self.rect.move_ip(self.dir * BULLET_MOVE_SPEED)
 
         # Erase the bullet if it hits a wall or goes offscreen
         walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]

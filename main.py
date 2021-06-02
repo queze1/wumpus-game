@@ -19,7 +19,7 @@ player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
 background = Background()
 
 # Initialize map
-game_map = GameMap(12)
+game_map = GameMap(10)
 minimap = Minimap(game_map, center=(WINDOW_WIDTH - 70, 70))
 minimap.render_minimap(game_map)
 

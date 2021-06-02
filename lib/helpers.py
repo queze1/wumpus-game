@@ -91,7 +91,8 @@ class BaseSprite(pygame.sprite.Sprite):
                     self.image_assets[image[0]].append(f'{image[0]}_{x}')
                 x += 1
 
-    def move_respecting_walls(self, x, y, all_sprites):
+    def move_respecting_walls(self, x_y, all_sprites):
+        x, y = x_y
         walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
         self.rect.y += y
         for wall in pygame.sprite.spritecollide(self, walls, False):

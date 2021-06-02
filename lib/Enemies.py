@@ -4,6 +4,7 @@ import queue
 
 import pygame
 
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.Player import Bullet
 from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
@@ -30,8 +31,9 @@ def line_of_sight(loc, dest_loc, blocking_walls):
 
 
 def neighbours(loc, dest, blocking_walls):
-    # Inflate the walls by one pixel to make sure that LOS detection works property
+    # Inflate the walls by one pixel `to make LOS checking work
     inflated_walls = [wall.inflate(2, 2) for wall in blocking_walls]
+    # Take the corners of each wall
     important_points = list(chain.from_iterable(
         [(wall.bottomleft, wall.bottomright, wall.topleft, wall.topright) for wall in inflated_walls]
     ))
@@ -45,6 +47,21 @@ def theta_star(start_rect, dest, all_sprites):
                       if isinstance(sprite, Wall) and
                       0 < (sprite.rect.centerx // 32) < 26 and
                       0 < (sprite.rect.centery // 32) < 14]
+
+    # Adjust the destination if the destination is unreachable due to it being too close to a wall
+    colliding_walls = [wall for wall in blocking_walls if wall.collidepoint(dest)]
+    if any(colliding_walls):
+        # Find all the walls that are touching this point and combine them
+        # Inflate by 1 pixel to make sure LOS check works
+        combined_wall = colliding_walls[0].unionall(colliding_walls).inflate(2, 2)
+
+        # Find the shortest distance to move the destination so that it is no longer too close to a wall
+        x, y = dest
+        horizontal_line = (0, y, WINDOW_WIDTH, y)
+        vertical_line = (x, 0, x, WINDOW_HEIGHT)
+        left, right = combined_wall.clipline(horizontal_line)
+        top, down = combined_wall.clipline(vertical_line)
+        dest = min((top, down, left, right), key=lambda loc: euclidean_distance(loc, dest))
 
     open_queue = queue.PriorityQueue()
     open_queue.put((0, start_rect.center))
@@ -63,6 +80,7 @@ def theta_star(start_rect, dest, all_sprites):
             while current != start_rect.center:
                 path.append(current)
                 current = parents[current]
+
             return list(reversed(path))
 
         closed_set.add(current)
@@ -111,36 +129,43 @@ class BaseEnemy(BaseSprite):
         return hp_left
 
 
-class TestDot(BaseSprite):
+class TestDot(pygame.sprite.Sprite):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_assets='assets/bullet.png', center=center)
+        super().__init__()
+        self.image = pygame.image.load('assets/enemy_bullet.png').convert()
+        self.rect = self.image.get_rect(center=center)
 
 
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/enemy.png', center=center)
         self.hp = 1
-        # self.dots = pygame.sprite.Group()
+        self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(all_sprites, self.hp)
         if not self.hp:
-            # all_sprites.remove(self.dots)
-            # self.dots.empty()
+            all_sprites.remove(self.dots)
+            self.dots.empty()
             return
 
         # TODO: make paths have inertia
         path = theta_star(self.rect, player.rect.center, all_sprites)
         if path:
-            # all_sprites.remove(self.dots)
-            # self.dots.empty()
-            # for center in path:
-            #     self.dots.add(TestDot(center))
-            # all_sprites.add(self.dots)
+            all_sprites.remove(self.dots)
+            self.dots.empty()
+            for center in path:
+                self.dots.add(TestDot(center))
+            all_sprites.add(self.dots)
 
-            vector = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
-            x, y = vector.normalize() * TEST_ENEMY_SPEED
-            self.move_respecting_walls(x, y, all_sprites)
+            x_y = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
+            x_y = x_y.normalize() * TEST_ENEMY_SPEED
+            self.move_respecting_walls(x_y, all_sprites)
+        blocking_walls = [sprite.rect for sprite in all_sprites
+                          if isinstance(sprite, Wall) and
+                          0 < (sprite.rect.centerx // 32) < 26 and
+                          0 < (sprite.rect.centery // 32) < 14]
+        print([wall for wall in blocking_walls if self.rect.colliderect(wall)])
 
 
 class TestBoss(BaseEnemy):
@@ -160,6 +185,5 @@ class TestBoss(BaseEnemy):
             #     self.dots.add(TestDot(center))
             # all_sprites.add(self.dots)
 
-            vector = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
-            x, y = vector.normalize() * TEST_ENEMY_SPEED
-            self.move_respecting_walls(x, y, all_sprites)
+            x_y = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
+            self.move_respecting_walls(x_y.normalize() * TEST_ENEMY_SPEED, all_sprites)

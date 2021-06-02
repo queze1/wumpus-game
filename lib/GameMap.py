@@ -167,7 +167,6 @@ class GameMap:
 
         # Load starting room
         self.environmental_sprites, _, _ = self.rooms[starting_room]
-        print(self.rooms.keys())
 
     @staticmethod
     def check_exited(rect):
