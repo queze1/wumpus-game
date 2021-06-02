@@ -5,7 +5,6 @@ import queue
 import pygame
 
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from lib.Player import Bullet
 from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
 
@@ -80,7 +79,8 @@ def theta_star(start_rect, dest, all_sprites):
             while current != start_rect.center:
                 path.append(current)
                 current = parents[current]
-
+            if start_rect.center == dest:
+                path.append(dest)
             return list(reversed(path))
 
         closed_set.add(current)
@@ -116,9 +116,8 @@ def theta_star(start_rect, dest, all_sprites):
 class BaseEnemy(BaseSprite):
     hp = None
 
-    def handle_damage(self, all_sprites, hp_left):
-        bullets = [sprite for sprite in all_sprites if isinstance(sprite, Bullet)]
-        colliding_bullets = pygame.sprite.spritecollide(self, bullets, False)
+    def handle_damage(self, player, hp_left):
+        colliding_bullets = pygame.sprite.spritecollide(self, player.friendly_bullets, False)
         for bullet in colliding_bullets:
             if self.hp > 0:
                 hp_left -= 1
@@ -143,47 +142,43 @@ class TestEnemy(BaseEnemy):
         self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
-        self.hp = self.handle_damage(all_sprites, self.hp)
+        self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
             all_sprites.remove(self.dots)
             self.dots.empty()
             return
 
         # TODO: make paths have inertia
+        # TODO: change pathfinding so it only recalculates its path every 5 frames
         path = theta_star(self.rect, player.rect.center, all_sprites)
-        if path:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
-            for center in path:
-                self.dots.add(TestDot(center))
-            all_sprites.add(self.dots)
-
-            x_y = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
-            x_y = x_y.normalize() * TEST_ENEMY_SPEED
-            self.move_respecting_walls(x_y, all_sprites)
-        blocking_walls = [sprite.rect for sprite in all_sprites
-                          if isinstance(sprite, Wall) and
-                          0 < (sprite.rect.centerx // 32) < 26 and
-                          0 < (sprite.rect.centery // 32) < 14]
-        print([wall for wall in blocking_walls if self.rect.colliderect(wall)])
+        distance_left = TEST_ENEMY_SPEED
+        for loc in path:
+            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if x_y.length() < distance_left:
+                self.move_respecting_walls(x_y, all_sprites)
+                distance_left -= x_y.length()
+            else:
+                x_y = x_y.normalize() * distance_left
+                self.move_respecting_walls(x_y, all_sprites)
+                break
 
 
 class TestBoss(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/cat.png', center=center)
         self.hp = 10
-        # self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
-        self.hp = self.handle_damage(all_sprites, self.hp)
+        self.hp = self.handle_damage(player, self.hp)
 
+        distance_left = BOSS_SPEED
         path = theta_star(self.rect, player.rect.center, all_sprites)
-        if path:
-            # all_sprites.remove(self.dots)
-            # self.dots.empty()
-            # for center in path:
-            #     self.dots.add(TestDot(center))
-            # all_sprites.add(self.dots)
-
-            x_y = pygame.Vector2(path[0]) - pygame.Vector2(self.rect.center)
-            self.move_respecting_walls(x_y.normalize() * TEST_ENEMY_SPEED, all_sprites)
+        for loc in path:
+            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if x_y.length() < distance_left:
+                self.move_respecting_walls(x_y, all_sprites)
+                distance_left -= x_y.length()
+            else:
+                x_y = x_y.normalize() * distance_left
+                self.move_respecting_walls(x_y, all_sprites)
+                break

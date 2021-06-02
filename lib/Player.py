@@ -2,9 +2,11 @@
 
 import pygame
 
+from lib.Enemies import BaseEnemy
 from lib.helpers import BaseSprite, Direction, WINDOW_RECT, change_action
 from lib.Obstacles import Wall
 from lib.Particles import ParticleSpawner
+
 
 PLAYER_MOVE_SPEED = 5
 BULLET_MOVE_SPEED = 20
@@ -36,6 +38,8 @@ class Player(BaseSprite):
         self.hp = 10
         self.attack_delay = 20
         self.current_attack_delay = 0
+        self.contact_damage_delay = 30
+        self.current_contact_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
@@ -46,13 +50,23 @@ class Player(BaseSprite):
             if keys_pressed[key]:
                 x_y += KEY_TO_DIR[key]
 
-        # Normalize movement
         if x_y:
             x_y = x_y.normalize() * PLAYER_MOVE_SPEED
         x, y = x_y
 
         # Move with wall collision
         self.move_respecting_walls(x_y, all_sprites)
+
+        # Handle contact damage
+        self.current_contact_delay -= 1
+        if self.current_contact_delay <= 0:
+            if self.rect.collidelist([enemy.rect for enemy in all_sprites if isinstance(enemy, BaseEnemy)]) != -1:
+                self.hp -= 1
+                self.current_contact_delay = self.contact_damage_delay
+                if self.hp == 0:
+                    print('You died!')
+                else:
+                    print(self.hp)
 
         # Shoot bullets
         self.current_attack_delay -= 1
