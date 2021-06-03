@@ -1,3 +1,4 @@
+import random
 from collections import defaultdict
 from itertools import chain
 import queue
@@ -8,9 +9,8 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
 
-
-TEST_ENEMY_SPEED = 3
-BOSS_SPEED = 4
+TEST_ENEMY_SPEED = 4
+BOSS_SPEED = 5
 
 # pathfinding testing
 ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
@@ -128,31 +128,31 @@ class BaseEnemy(BaseSprite):
         return hp_left
 
 
-class TestDot(pygame.sprite.Sprite):
-    def __init__(self, center=(0, 0)):
-        super().__init__()
-        self.image = pygame.image.load('assets/enemy_bullet.png').convert()
-        self.rect = self.image.get_rect(center=center)
-
-
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/enemy.png', center=center)
+        self.recalculation_delay = 5
+        self.current_recalculation_delay = 0
+        self.path = None
         self.hp = 1
-        self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
             return
 
-        # TODO: make paths have inertia
-        # TODO: change pathfinding so it only recalculates its path every 5 frames
-        path = theta_star(self.rect, player.rect.center, all_sprites)
+        # Random recalculating delay so not all the enemies update at the same time
+        if random.random() > 0.5:
+            self.current_recalculation_delay -= 1
+        if self.current_recalculation_delay > 0:
+            # Path find from the end
+            self.path = self.path[:-1] + [player.rect.center]
+        else:
+            # Recalculate the entire path
+            self.path = theta_star(self.rect, player.rect.center, all_sprites)
+
         distance_left = TEST_ENEMY_SPEED
-        for loc in path:
+        for loc in self.path:
             x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
             if x_y.length() < distance_left:
                 self.move_respecting_walls(x_y, all_sprites)

@@ -58,7 +58,7 @@ def load_room(room_path, exit_directions):
 
 class EnemySpawner:
     def __init__(self):
-        self.lvl_number = 0
+        self.diff_number = 0
 
         self.is_boss = False
         self.waves_left = 0
@@ -71,11 +71,8 @@ class EnemySpawner:
         if is_cleared:
             self.waves_left = 0
         else:
-            self.lvl_number += 1
-            if not is_boss:
-                self.waves_left = 2
-            else:
-                self.waves_left = 1
+            self.diff_number += 1
+            self.waves_left = 1
 
     def spawn_enemies(self, all_sprites):
         """
@@ -89,10 +86,10 @@ class EnemySpawner:
 
             elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
                 no_spawn = [sprite.rect.inflate(10, 10) for sprite in all_sprites if isinstance(sprite, Wall)]
-                no_spawn.append([sprite.rect.inflate(100, 100) for sprite in all_sprites
+                no_spawn.append([sprite.rect.inflate(150, 150) for sprite in all_sprites
                                  if isinstance(sprite, Player)][0])
 
-                for j in range(self.lvl_number):
+                for j in range(self.diff_number):
                     # Sanity checking
                     sane = False
                     while not sane:
