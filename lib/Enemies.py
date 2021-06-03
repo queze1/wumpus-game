@@ -9,8 +9,9 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
 
-TEST_ENEMY_SPEED = 4
-BOSS_SPEED = 5
+
+TEST_ENEMY_SPEED = 6
+BOSS_SPEED = 4
 
 # pathfinding testing
 ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
@@ -128,6 +129,13 @@ class BaseEnemy(BaseSprite):
         return hp_left
 
 
+class TestDot(pygame.sprite.Sprite):
+    def __init__(self, center=(0, 0)):
+        super().__init__()
+        self.image = pygame.image.load('assets/enemy_bullet.png').convert()
+        self.rect = self.image.get_rect(center=center)
+
+
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/enemy.png', center=center)
@@ -135,10 +143,13 @@ class TestEnemy(BaseEnemy):
         self.current_recalculation_delay = 0
         self.path = None
         self.hp = 1
+        self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
+            all_sprites.remove(self.dots)
+            self.dots.empty()
             return
 
         # Random recalculating delay so not all the enemies update at the same time
@@ -153,13 +164,13 @@ class TestEnemy(BaseEnemy):
 
         distance_left = TEST_ENEMY_SPEED
         for loc in self.path:
-            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if x_y.length() < distance_left:
-                self.move_respecting_walls(x_y, all_sprites)
-                distance_left -= x_y.length()
+            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if self.x_y.length() < distance_left:
+                self.move_respecting_walls(self.x_y, all_sprites)
+                distance_left -= self.x_y.length()
             else:
-                x_y = x_y.normalize() * distance_left
-                self.move_respecting_walls(x_y, all_sprites)
+                self.x_y = self.x_y.normalize() * distance_left
+                self.move_respecting_walls(self.x_y, all_sprites)
                 break
 
 
@@ -174,11 +185,11 @@ class TestBoss(BaseEnemy):
         distance_left = BOSS_SPEED
         path = theta_star(self.rect, player.rect.center, all_sprites)
         for loc in path:
-            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if x_y.length() < distance_left:
-                self.move_respecting_walls(x_y, all_sprites)
-                distance_left -= x_y.length()
+            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if self.x_y.length() < distance_left:
+                self.move_respecting_walls(self.x_y, all_sprites)
+                distance_left -= self.x_y.length()
             else:
-                x_y = x_y.normalize() * distance_left
-                self.move_respecting_walls(x_y, all_sprites)
+                self.x_y = self.x_y.normalize() * distance_left
+                self.move_respecting_walls(self.x_y, all_sprites)
                 break

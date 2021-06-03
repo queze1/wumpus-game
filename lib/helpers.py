@@ -46,6 +46,7 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
 class BaseSprite(pygame.sprite.Sprite):
     def __init__(self, image_assets=None, center=(0, 0), alpha=False):
         super().__init__()
+        self.x_y = pygame.Vector2()
         self.flip = False
         self.state = 'idle'
         self.animation_frame = 0
