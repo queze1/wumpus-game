@@ -7,6 +7,7 @@ from lib.helpers import BaseSprite
 class Minimap(BaseSprite):
     def __init__(self, game_map, center=(0, 0)):
         super().__init__(image_assets='assets/minimap/background.png', center=center, alpha=True)
+        self.image_base = pygame.image.load('assets/minimap/background.png')
         highest_xy = max([location[0] for location in game_map.rooms.keys()] + 
                          [location[1] for location in game_map.rooms.keys()])
         lowest_xy = min([location[0] for location in game_map.rooms.keys()] + 
@@ -48,5 +49,21 @@ class Minimap(BaseSprite):
         self.image.blit(room, (x - half_room_width, y-half_room_width))
 
 class Healthbar(BaseSprite):
-    def __init__(self, player, center=(40,40)):
-        super().__init__(image_assets='assets/healthbar/filled.png', center=center)
+    def __init__(self, player, center=(0,0)):
+        super().__init__(image_assets='assets/healthbar/background.png', center=center, alpha=True)
+        self.image.set_colorkey((1, 1, 1))
+        self.base_image = pygame.image.load('assets/healthbar/background.png')
+        self.heart_image = pygame.image.load('assets/healthbar/filled.png')
+        self.maintained_hp = player.hp
+        self.render_hearts()
+
+    def update(self, all_sprites, player, game_map):
+        if self.maintained_hp != player.hp:
+            self.maintained_hp = player.hp
+            self.render_hearts()
+
+    def render_hearts(self):
+        self.image.blit(self.base_image, (0,0))
+        print(self.maintained_hp)
+        for x in range(0,self.maintained_hp):
+            self.image.blit(self.heart_image, (x * 64, 0))

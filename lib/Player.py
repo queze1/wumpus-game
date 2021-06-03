@@ -37,7 +37,7 @@ class Player(BaseSprite):
                         ('damaged_idle', 'assets/player/player_damaged_idle.png', [7, 7, 7, 7], (12, 32)),
                         ('damaged_walking', 'assets/player/player_damaged_walking.png', [7, 7, 7, 7, 7], (12, 32))]
         super().__init__(image_assets=image_assets, center=center)
-        self.hp = 10
+        self.hp = 5
         self.attack_delay = 20
         self.current_attack_delay = 0
         self.contact_damage_delay = 100

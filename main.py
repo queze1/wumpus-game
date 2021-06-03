@@ -16,7 +16,7 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # Create objects
 player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
-healthbar = Healthbar(player, center=(48,32))
+healthbar = Healthbar(player, center=(166,38))
 background = Background()
 
 # Initialize map
