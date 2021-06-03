@@ -4,7 +4,7 @@ from config import *
 from lib.Player import Player
 from lib.Background import Background
 from lib.GameMap import GameMap
-from lib.Interface import Minimap
+from lib.HUD import Minimap, Healthbar
 
 pygame.init()
 
@@ -16,6 +16,7 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # Create objects
 player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
+healthbar = Healthbar(player, center=(48,32))
 background = Background()
 
 # Initialize map
@@ -28,6 +29,7 @@ all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDI
 all_sprites.add(background)
 all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)
+all_sprites.add(healthbar)
 all_sprites.add(minimap)
 
 running = True
@@ -46,6 +48,8 @@ while running:
     all_sprites.add(player.friendly_bullets)
     all_sprites.remove(minimap)
     all_sprites.add(minimap)
+    all_sprites.remove(healthbar)
+    all_sprites.add(healthbar)
 
     if not game_map.is_cleared():
         is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)

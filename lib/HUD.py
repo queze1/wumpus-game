@@ -46,3 +46,7 @@ class Minimap(BaseSprite):
         x, y = location
         half_room_width = room.get_rect().width/2
         self.image.blit(room, (x - half_room_width, y-half_room_width))
+
+class Healthbar(BaseSprite):
+    def __init__(self, player, center=(40,40)):
+        super().__init__(image_assets='assets/healthbar/filled.png', center=center)

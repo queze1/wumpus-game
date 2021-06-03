@@ -9,7 +9,7 @@ from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
 
 
-TEST_ENEMY_SPEED = 3
+TEST_ENEMY_SPEED = 6
 BOSS_SPEED = 4
 
 # pathfinding testing
@@ -153,13 +153,13 @@ class TestEnemy(BaseEnemy):
         path = theta_star(self.rect, player.rect.center, all_sprites)
         distance_left = TEST_ENEMY_SPEED
         for loc in path:
-            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if x_y.length() < distance_left:
-                self.move_respecting_walls(x_y, all_sprites)
-                distance_left -= x_y.length()
+            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if self.x_y.length() < distance_left:
+                self.move_respecting_walls(self.x_y, all_sprites)
+                distance_left -= self.x_y.length()
             else:
-                x_y = x_y.normalize() * distance_left
-                self.move_respecting_walls(x_y, all_sprites)
+                self.x_y = self.x_y.normalize() * distance_left
+                self.move_respecting_walls(self.x_y, all_sprites)
                 break
 
 
@@ -174,11 +174,11 @@ class TestBoss(BaseEnemy):
         distance_left = BOSS_SPEED
         path = theta_star(self.rect, player.rect.center, all_sprites)
         for loc in path:
-            x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if x_y.length() < distance_left:
-                self.move_respecting_walls(x_y, all_sprites)
-                distance_left -= x_y.length()
+            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if self.x_y.length() < distance_left:
+                self.move_respecting_walls(self.x_y, all_sprites)
+                distance_left -= self.x_y.length()
             else:
-                x_y = x_y.normalize() * distance_left
-                self.move_respecting_walls(x_y, all_sprites)
+                self.x_y = self.x_y.normalize() * distance_left
+                self.move_respecting_walls(self.x_y, all_sprites)
                 break

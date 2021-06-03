@@ -33,40 +33,48 @@ bullet_particles = {
 class Player(BaseSprite):
     def __init__(self, center=(0, 0)):
         image_assets = [('idle', 'assets/player/player_idle.png', [40, 40, 40, 40], (12, 32)),
-                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15], (12, 32))]
+                        ('walking', 'assets/player/player_walking.png', [15, 15, 15, 15, 15], (12, 32)),
+                        ('damaged_idle', 'assets/player/player_damaged_idle.png', [7, 7, 7, 7], (12, 32)),
+                        ('damaged_walking', 'assets/player/player_damaged_walking.png', [7, 7, 7, 7, 7], (12, 32))]
         super().__init__(image_assets=image_assets, center=center)
         self.hp = 10
         self.attack_delay = 20
         self.current_attack_delay = 0
-        self.contact_damage_delay = 30
+        self.contact_damage_delay = 100
         self.current_contact_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         # Movement
-        x_y = pygame.Vector2()
+        self.x_y = pygame.Vector2()
         keys_pressed = pygame.key.get_pressed()
         for key in KEY_TO_DIR:
             if keys_pressed[key]:
-                x_y += KEY_TO_DIR[key]
+                self.x_y += KEY_TO_DIR[key]
 
-        if x_y:
-            x_y = x_y.normalize() * PLAYER_MOVE_SPEED
-        x, y = x_y
-
-        # Move with wall collision
-        self.move_respecting_walls(x_y, all_sprites)
+        if self.x_y:
+            self.x_y = self.x_y.normalize() * PLAYER_MOVE_SPEED
+        x, y = self.x_y
 
         # Handle contact damage
         self.current_contact_delay -= 1
         if self.current_contact_delay <= 0:
-            if self.rect.collidelist([enemy.rect for enemy in all_sprites if isinstance(enemy, BaseEnemy)]) != -1:
+            enemies = pygame.sprite.Group([sprite for sprite in all_sprites if isinstance(sprite, BaseEnemy)])
+            enemies_collided = pygame.sprite.spritecollide(self, enemies, False)
+            if enemies_collided:
                 self.hp -= 1
                 self.current_contact_delay = self.contact_damage_delay
+                
+                knockback_vector = enemies_collided[0].x_y
+                self.x_y += knockback_vector * 10
+                
                 if self.hp == 0:
-                    print('You died!')
+                    self.kill()
                 else:
                     print(self.hp)
+
+        # Move with wall collision
+        self.move_respecting_walls(self.x_y, all_sprites)
 
         # Shoot bullets
         self.current_attack_delay -= 1
@@ -79,16 +87,28 @@ class Player(BaseSprite):
             self.friendly_bullets.add(bullet)
 
         # Animation
-        if x > 0:
+        elif x > 0:
             self.flip = False
-            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+            if self.current_contact_delay >= 0:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         elif abs(y) > 0:
-            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+            if self.current_contact_delay >= 0:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         elif x < 0:
             self.flip = True
-            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
+            if self.current_contact_delay >= 0:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         else: 
-            self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
+            if self.current_contact_delay >= 0:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_idle')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
 
         self.update_animation()
 
