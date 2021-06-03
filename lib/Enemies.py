@@ -9,8 +9,7 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
 
-
-TEST_ENEMY_SPEED = 6
+TEST_ENEMY_SPEED = 3
 BOSS_SPEED = 4
 
 # pathfinding testing
@@ -41,7 +40,10 @@ def neighbours(loc, dest, blocking_walls):
     return [point for point in important_points if line_of_sight(loc, point, blocking_walls) and point != loc]
 
 
+# TODO: make enemies avoid each other/collide with each other
 def theta_star(start_rect, dest, all_sprites):
+    """Uses theta* to calculate the optimal path."""
+
     # Increase the size of the walls to account of the hitbox
     blocking_walls = [sprite.rect.inflate(start_rect.width, start_rect.width) for sprite in all_sprites
                       if isinstance(sprite, Wall) and
@@ -115,7 +117,39 @@ def theta_star(start_rect, dest, all_sprites):
 
 
 class BaseEnemy(BaseSprite):
-    hp = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._path = None
+        self.x_y = 0
+        self._half_recalculation_delay = 3
+        self._current_recalculation_delay = 0
+
+    def lazy_theta_star(self, dest, all_sprites):
+        """Calculates the path using theta* but the path is only recalculated roughly every 6 frames."""
+        if random.random() > 0.5:
+            self._current_recalculation_delay -= 1
+        if self._current_recalculation_delay > 0:
+            # Path find from the end
+            self._path = self._path[:-1] + [dest]
+        else:
+            # Recalculate the entire path
+            self._path = theta_star(self.rect, dest, all_sprites)
+            self._current_recalculation_delay = self._half_recalculation_delay
+
+        return self._path
+
+    def move_along_path(self, path, distance, all_sprites):
+        # this function ignores momentum from collision, so add extra code for that
+        distance_left = distance
+        for loc in path:
+            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
+            if self.x_y.length() < distance_left:
+                self.move_respecting_walls(self.x_y, all_sprites)
+                distance_left -= self.x_y.length()
+            else:
+                self.x_y = self.x_y.normalize() * distance_left
+                self.move_respecting_walls(self.x_y, all_sprites)
+                break
 
     def handle_damage(self, player, hp_left):
         colliding_bullets = pygame.sprite.spritecollide(self, player.friendly_bullets, False)
@@ -129,49 +163,19 @@ class BaseEnemy(BaseSprite):
         return hp_left
 
 
-class TestDot(pygame.sprite.Sprite):
-    def __init__(self, center=(0, 0)):
-        super().__init__()
-        self.image = pygame.image.load('assets/enemy_bullet.png').convert()
-        self.rect = self.image.get_rect(center=center)
-
-
 class TestEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/enemy.png', center=center)
-        self.recalculation_delay = 5
-        self.current_recalculation_delay = 0
-        self.path = None
         self.hp = 1
-        self.dots = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
-            all_sprites.remove(self.dots)
-            self.dots.empty()
             return
 
         # Random recalculating delay so not all the enemies update at the same time
-        if random.random() > 0.5:
-            self.current_recalculation_delay -= 1
-        if self.current_recalculation_delay > 0:
-            # Path find from the end
-            self.path = self.path[:-1] + [player.rect.center]
-        else:
-            # Recalculate the entire path
-            self.path = theta_star(self.rect, player.rect.center, all_sprites)
-
-        distance_left = TEST_ENEMY_SPEED
-        for loc in self.path:
-            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if self.x_y.length() < distance_left:
-                self.move_respecting_walls(self.x_y, all_sprites)
-                distance_left -= self.x_y.length()
-            else:
-                self.x_y = self.x_y.normalize() * distance_left
-                self.move_respecting_walls(self.x_y, all_sprites)
-                break
+        path = self.lazy_theta_star(player.rect.center, all_sprites)
+        self.move_along_path(path, TEST_ENEMY_SPEED, all_sprites)
 
 
 class TestBoss(BaseEnemy):
@@ -181,15 +185,8 @@ class TestBoss(BaseEnemy):
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
+        if not self.hp:
+            return
 
-        distance_left = BOSS_SPEED
-        path = theta_star(self.rect, player.rect.center, all_sprites)
-        for loc in path:
-            self.x_y = pygame.Vector2(loc) - pygame.Vector2(self.rect.center)
-            if self.x_y.length() < distance_left:
-                self.move_respecting_walls(self.x_y, all_sprites)
-                distance_left -= self.x_y.length()
-            else:
-                self.x_y = self.x_y.normalize() * distance_left
-                self.move_respecting_walls(self.x_y, all_sprites)
-                break
+        path = self.lazy_theta_star(player.rect.center, all_sprites)
+        self.move_along_path(path, BOSS_SPEED, all_sprites)
