@@ -27,6 +27,10 @@ class Direction:
     UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
 
 
+def euclidean_distance(loc, dest_loc):
+    return (pygame.Vector2(dest_loc) - pygame.Vector2(loc)).length()
+
+
 def strip_from_sheet(sheet, start, size, columns, rows=1):
     """
     Strips individual frames from a sprite sheet given a start location,
