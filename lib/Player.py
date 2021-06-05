@@ -25,8 +25,15 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
 bullet_particles = {
     'velocity': ((-1, 1), (-1, 1)),
     'radius': (3, 5),
-    'colour': [(255, 236, 214)],
+    'colour': (255, 236, 214),
     'decay': 0.4
+}
+
+damage_particles = {
+    'velocity': ((-3,3), (-3,3)),
+    'radius': (2,3),
+    'colour': (255,236,214),
+    'decay': 0.1
 }
 
 
@@ -37,7 +44,7 @@ class Player(BaseSprite):
                         ('damaged_idle', 'assets/player/player_damaged_idle.png', [7, 7, 7, 7], (12, 32)),
                         ('damaged_walking', 'assets/player/player_damaged_walking.png', [7, 7, 7, 7, 7], (12, 32))]
         super().__init__(image_assets=image_assets, center=center)
-        self.hp = 5
+        self.hp = 100
         self.attack_delay = 20
         self.current_attack_delay = 0
         self.contact_damage_delay = 100
@@ -62,11 +69,12 @@ class Player(BaseSprite):
             enemies = pygame.sprite.Group([sprite for sprite in all_sprites if isinstance(sprite, BaseEnemy)])
             enemies_collided = pygame.sprite.spritecollide(self, enemies, False)
             if enemies_collided:
+                self.particles.add(ParticleSpawner(self.rect.center, 10, damage_particles))
                 self.hp -= 1
                 self.current_contact_delay = self.contact_damage_delay
                 
-                knockback_vector = enemies_collided[0].x_y
-                self.x_y += knockback_vector * 10
+                knockback_vector = enemies_collided[0].x_y  
+                self.x_y += knockback_vector * 5
                 
                 if self.hp == 0:
                     self.kill()
@@ -111,6 +119,7 @@ class Player(BaseSprite):
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
 
         self.update_animation()
+        all_sprites.add(self.particles)
 
 
 class Bullet(BaseSprite):
@@ -121,7 +130,6 @@ class Bullet(BaseSprite):
     def update(self, all_sprites, player, game_map):
         self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
 
-        all_sprites.add(self.particles)
         self.rect.move_ip(self.dir * BULLET_MOVE_SPEED)
 
         # Erase the bullet if it hits a wall or goes offscreen
@@ -132,3 +140,5 @@ class Bullet(BaseSprite):
         if not self.rect.colliderect(WINDOW_RECT):
             self.kill()
             return
+            
+        all_sprites.add(self.particles)

@@ -2,11 +2,12 @@ import pygame
 from pygame.transform import scale
 
 from lib.helpers import BaseSprite
-
+from lib.GameMap import room_neighbours
 
 class Minimap(BaseSprite):
     def __init__(self, game_map, center=(0, 0)):
         super().__init__(image_assets='assets/minimap/background.png', center=center, alpha=True)
+        self.image.set_colorkey((1,1,1))
         self.image_base = pygame.image.load('assets/minimap/background.png')
         highest_xy = max([location[0] for location in game_map.rooms.keys()] + 
                          [location[1] for location in game_map.rooms.keys()])
@@ -24,9 +25,11 @@ class Minimap(BaseSprite):
                                             (self.room_size, self.room_size))}
 
     def render_minimap(self, game_map):
+        self.image = self.image_base
         locations = [location for location in game_map.rooms.keys()]
         player_location = game_map.player_location
         increment = 0
+        blitted_locations = []
         while min([location[0] for location in locations] + [location[1] for location in locations]) < 0:
             locations = [(location[0] + 1, location[1] + 1) for location in locations]
             player_location = (player_location[0] + 1, player_location[1] + 1)
@@ -34,20 +37,29 @@ class Minimap(BaseSprite):
 
         for location in locations:
             x, y = location
+            scaled_loc = tuple([value - increment for value in location])
             blit_loc = ((x * self.room_size) + 20, (y * self.room_size) + 20)
 
             if location == player_location:
                 self.render_room(self.room_types['player'], blit_loc)
-            elif game_map.rooms[tuple([value - increment for value in location])][-2]:
+                blitted_locations.append(location)
+            elif game_map.rooms[scaled_loc][-2]:
+                blitted_locations.append(location)
                 self.render_room(self.room_types['cleared'], blit_loc)
-            else:
-                self.render_room(self.room_types['normal'], blit_loc)
+            if location == player_location or game_map.rooms[scaled_loc][-2]:            
+                for room in [room for room in room_neighbours(scaled_loc) 
+                            if tuple([value + increment for value in room]) in locations and
+                            tuple([value + increment for value in room]) not in blitted_locations]:
+                    x1, y1 = tuple([value + increment for value in room])
+                    print(x1, y1)
+                    blit_loc = ((x1 * self.room_size) + 20, (y1 * self.room_size) + 20)
+                    self.render_room(self.room_types['normal'], blit_loc)
 
     def render_room(self, room, location):
         x, y = location
+        room.set_alpha(255)
         half_room_width = room.get_rect().width/2
         self.image.blit(room, (x - half_room_width, y-half_room_width))
-
 
 class Healthbar(BaseSprite):
     def __init__(self, player, center=(0,0)):

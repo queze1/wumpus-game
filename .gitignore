@@ -78,4 +78,3 @@ fabric.properties
 .idea/vcs.xml
 .idea/wumpus-game.iml
 venv/
-__pycache__/
