@@ -241,5 +241,5 @@ class GameMap:
             self.enemy_spawner.room_setup(is_cleared=True)
 
         
-        minimap.render_minimap(self)
+        minimap.render_minimap(self, all_sprites)
 

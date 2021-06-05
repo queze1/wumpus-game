@@ -22,7 +22,7 @@ background = Background()
 # Initialize map
 game_map = GameMap(10)
 minimap = Minimap(game_map, center=(WINDOW_WIDTH - 78, 78))
-minimap.render_minimap(game_map)
+minimap.render_minimap(game_map, None)
 
 # maybe use LayeredUpdates()?
 all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
@@ -45,11 +45,8 @@ while running:
 
     # Add and update sprites
     all_sprites.clear(window, background.image)
+    all_sprites.add(player.friendly_bullets)
     all_sprites.add(player.bullets)
-    all_sprites.remove(minimap)
-    all_sprites.add(minimap)
-    all_sprites.remove(healthbar)
-    all_sprites.add(healthbar)
 
     if not game_map.is_cleared():
         is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)

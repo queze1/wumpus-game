@@ -24,7 +24,7 @@ class Minimap(BaseSprite):
                            'cleared': scale(pygame.image.load('assets/minimap/clearedroom.png'),
                                             (self.room_size, self.room_size))}
 
-    def render_minimap(self, game_map):
+    def render_minimap(self, game_map, all_sprites):
         self.image = self.image_base
         locations = [location for location in game_map.rooms.keys()]
         player_location = game_map.player_location
@@ -55,6 +55,10 @@ class Minimap(BaseSprite):
                     blit_loc = ((x1 * self.room_size) + 20, (y1 * self.room_size) + 20)
                     self.render_room(self.room_types['normal'], blit_loc)
 
+        if all_sprites:
+            all_sprites.remove(self)
+            all_sprites.add(self)
+
     def render_room(self, room, location):
         x, y = location
         room.set_alpha(255)
@@ -74,6 +78,9 @@ class Healthbar(BaseSprite):
         if self.maintained_hp != player.hp:
             self.maintained_hp = player.hp
             self.render_hearts()
+                
+        all_sprites.remove(self)
+        all_sprites.add(self)
 
     def render_hearts(self):
         self.image.blit(self.base_image, (0,0))

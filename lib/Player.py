@@ -80,7 +80,7 @@ class Player(BaseSprite):
                                     euclidean_distance(self.rect.center, sprite.rect.center))
                 if isinstance(closest_enemy, BaseEnemy):
                     knockback_vector = closest_enemy.x_y
-                    self.x_y += knockback_vector * 10
+                    self.x_y += knockback_vector * 3
                 elif isinstance(closest_enemy, EnemyBullet):
                     closest_enemy.kill()
                 
