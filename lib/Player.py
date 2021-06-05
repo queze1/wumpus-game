@@ -1,9 +1,11 @@
 """This module provides access to several classes that are associated with the player character."""
 
+from functools import partial
+
 import pygame
 
-from lib.Enemies import BaseEnemy
-from lib.helpers import BaseSprite, Direction, WINDOW_RECT, change_action
+from lib.Enemies import BaseEnemy, EnemyBullet
+from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction, WINDOW_RECT
 from lib.Obstacles import Wall
 from lib.Particles import ParticleSpawner
 
@@ -44,12 +46,12 @@ class Player(BaseSprite):
                         ('damaged_idle', 'assets/player/player_damaged_idle.png', [7, 7, 7, 7], (12, 32)),
                         ('damaged_walking', 'assets/player/player_damaged_walking.png', [7, 7, 7, 7, 7], (12, 32))]
         super().__init__(image_assets=image_assets, center=center)
-        self.hp = 100
+        self.hp = 5
         self.attack_delay = 20
         self.current_attack_delay = 0
-        self.contact_damage_delay = 100
-        self.current_contact_delay = 0
-        self.friendly_bullets = pygame.sprite.Group()
+        self.damage_delay = 100
+        self.current_damage_delay = 0
+        self.bullets = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         # Movement
@@ -63,18 +65,24 @@ class Player(BaseSprite):
             self.x_y = self.x_y.normalize() * PLAYER_MOVE_SPEED
         x, y = self.x_y
 
-        # Handle contact damage
-        self.current_contact_delay -= 1
-        if self.current_contact_delay <= 0:
-            enemies = pygame.sprite.Group([sprite for sprite in all_sprites if isinstance(sprite, BaseEnemy)])
+        # Handle damage
+        self.current_damage_delay -= 1
+        if self.current_damage_delay <= 0:
+            enemies = pygame.sprite.Group([sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))])
             enemies_collided = pygame.sprite.spritecollide(self, enemies, False)
             if enemies_collided:
                 self.particles.add(ParticleSpawner(self.rect.center, 10, damage_particles))
                 self.hp -= 1
-                self.current_contact_delay = self.contact_damage_delay
-                
-                knockback_vector = enemies_collided[0].x_y  
-                self.x_y += knockback_vector * 5
+                self.current_damage_delay = self.damage_delay
+
+                # Only take damage from the closest enemy
+                closest_enemy = min(enemies, key=lambda sprite:
+                                    euclidean_distance(self.rect.center, sprite.rect.center))
+                if isinstance(closest_enemy, BaseEnemy):
+                    knockback_vector = closest_enemy.x_y
+                    self.x_y += knockback_vector * 10
+                elif isinstance(closest_enemy, EnemyBullet):
+                    closest_enemy.kill()
                 
                 if self.hp == 0:
                     self.kill()
@@ -92,28 +100,28 @@ class Player(BaseSprite):
             self.current_attack_delay = self.attack_delay
             bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
             bullet = Bullet(bullet_dir, center=self.rect.center)
-            self.friendly_bullets.add(bullet)
+            self.bullets.add(bullet)
 
         # Animation
         elif x > 0:
             self.flip = False
-            if self.current_contact_delay >= 0:
+            if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         elif abs(y) > 0:
-            if self.current_contact_delay >= 0:
+            if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         elif x < 0:
             self.flip = True
-            if self.current_contact_delay >= 0:
+            if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
         else: 
-            if self.current_contact_delay >= 0:
+            if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_idle')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
@@ -140,5 +148,5 @@ class Bullet(BaseSprite):
         if not self.rect.colliderect(WINDOW_RECT):
             self.kill()
             return
-            
+
         all_sprites.add(self.particles)

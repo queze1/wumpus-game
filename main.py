@@ -45,7 +45,7 @@ while running:
 
     # Add and update sprites
     all_sprites.clear(window, background.image)
-    all_sprites.add(player.friendly_bullets)
+    all_sprites.add(player.bullets)
     all_sprites.remove(minimap)
     all_sprites.add(minimap)
     all_sprites.remove(healthbar)

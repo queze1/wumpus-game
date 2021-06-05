@@ -12,7 +12,7 @@ import random
 import pygame
 
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
-from lib.Enemies import BaseEnemy, TestEnemy, TestBoss
+from lib.Enemies import BaseEnemy, TestEnemy, TestShootingEnemy, TestBoss
 from lib.helpers import Direction
 from lib.Obstacles import Wall
 from lib.Player import Player
@@ -88,6 +88,7 @@ class EnemySpawner:
                 self.waves_left -= 1
 
             elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+                # TODO: Make the enemies spawn at set spawning locations randomly and spawn different types of enemies
                 no_spawn = [sprite.rect.inflate(10, 10) for sprite in all_sprites if isinstance(sprite, Wall)]
                 no_spawn.append([sprite.rect.inflate(100, 100) for sprite in all_sprites
                                  if isinstance(sprite, Player)][0])
@@ -96,7 +97,7 @@ class EnemySpawner:
                     # Sanity checking
                     sane = False
                     while not sane:
-                        enemy = TestEnemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
+                        enemy = TestShootingEnemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
                         if enemy.rect.collidelist(no_spawn) == -1:
                             sane = True
 
@@ -215,8 +216,8 @@ class GameMap:
         print(f'new location: {self.player_location}')
 
         # Change sprites
-        all_sprites.remove(player.friendly_bullets)
-        player.friendly_bullets.empty()
+        all_sprites.remove(player.bullets)
+        player.bullets.empty()
         all_sprites.remove(self.environmental_sprites)
         all_sprites.remove(self.enemy_spawner.enemies)
         self.environmental_sprites, is_cleared, _ = self.rooms[self.player_location]
