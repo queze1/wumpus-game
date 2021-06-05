@@ -50,6 +50,7 @@ class Player(BaseSprite):
         self.contact_damage_delay = 100
         self.current_contact_delay = 0
         self.friendly_bullets = pygame.sprite.Group()
+        self.deck = []
 
     def update(self, all_sprites, player, game_map):
         # Movement
@@ -74,7 +75,7 @@ class Player(BaseSprite):
                 self.current_contact_delay = self.contact_damage_delay
                 
                 knockback_vector = enemies_collided[0].x_y  
-                self.x_y += knockback_vector * 5
+                self.x_y += knockback_vector * 3
                 
                 if self.hp == 0:
                     self.kill()
