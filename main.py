@@ -45,7 +45,6 @@ while running:
 
     # Add and update sprites
     all_sprites.clear(window, background.image)
-    all_sprites.add(player.friendly_bullets)
     all_sprites.add(player.bullets)
 
     if not game_map.is_cleared():
