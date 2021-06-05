@@ -21,7 +21,7 @@ background = Background()
 
 # Initialize map
 game_map = GameMap(10)
-minimap = Minimap(game_map, center=(WINDOW_WIDTH - 70, 70))
+minimap = Minimap(game_map, center=(WINDOW_WIDTH - 78, 78))
 minimap.render_minimap(game_map)
 
 # maybe use LayeredUpdates()?
