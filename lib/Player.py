@@ -92,6 +92,12 @@ class Player(BaseSprite):
         # Move with wall collision
         self.move_respecting_walls(self.x_y, all_sprites)
 
+        # Kill all enemies in room
+        if keys_pressed[pygame.K_b]:
+            for enemy in game_map.enemy_spawner.enemies:
+                enemy.kill()
+            game_map.enemy_spawner.waves_left = 0
+
         # Shoot bullets
         self.current_attack_delay -= 1
         arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]

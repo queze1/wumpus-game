@@ -51,7 +51,6 @@ class Minimap(BaseSprite):
                             if tuple([value + increment for value in room]) in locations and
                             tuple([value + increment for value in room]) not in blitted_locations]:
                     x1, y1 = tuple([value + increment for value in room])
-                    print(x1, y1)
                     blit_loc = ((x1 * self.room_size) + 20, (y1 * self.room_size) + 20)
                     self.render_room(self.room_types['normal'], blit_loc)
 
@@ -64,6 +63,7 @@ class Minimap(BaseSprite):
         room.set_alpha(255)
         half_room_width = room.get_rect().width/2
         self.image.blit(room, (x - half_room_width, y-half_room_width))
+
 
 class Healthbar(BaseSprite):
     def __init__(self, player, center=(0,0)):
@@ -84,6 +84,5 @@ class Healthbar(BaseSprite):
 
     def render_hearts(self):
         self.image.blit(self.base_image, (0,0))
-        print(self.maintained_hp)
         for x in range(0,self.maintained_hp):
             self.image.blit(self.heart_image, (x * 64, 0))

@@ -178,9 +178,9 @@ class BaseEnemy(BaseSprite):
 
 
 class EnemyBullet(BaseSprite):
-    def __init__(self, center, target):
+    def __init__(self, center, target, speed):
         super().__init__(image_assets='assets/enemy_bullet.png', center=center)
-        self.direction = (pygame.Vector2(target) - pygame.Vector2(center)).normalize() * ENEMY_BULLET_SPEED
+        self.direction = (pygame.Vector2(target) - pygame.Vector2(center)).normalize() * speed
 
     def update(self, all_sprites, player, gamemap):
         x, y = self.direction
@@ -209,7 +209,7 @@ class TestEnemy(BaseEnemy):
 
 class TestShootingEnemy(BaseEnemy):
     def __init__(self, center=(0, 0)):
-        super().__init__(image_assets='assets/enemy.png', center=center)
+        super().__init__(image_assets='assets/family_friendly_enemy.png', center=center)
         # Minimum time between attacks
         self.attack_delay = 90
         # If the enemy has already "reloaded" when out of LOS of you, wait this amount of time before actually firing
@@ -220,8 +220,6 @@ class TestShootingEnemy(BaseEnemy):
         self.hp = 3
         self.bullets = pygame.sprite.Group()
 
-        self.was_in_los = False
-
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
@@ -229,25 +227,18 @@ class TestShootingEnemy(BaseEnemy):
             self.bullets.empty()
             return
 
-        path = self.lazy_theta_star(player.rect.center, all_sprites)
-        # Don't move if in LOS
-        self.move_along_path(path[:-1], SHOOTING_ENEMY_SPEED, all_sprites)
-
         in_los = line_of_sight(self.rect.center, player.rect.center, get_blocking_walls(all_sprites))
+        path = self.lazy_theta_star(player.rect.center, all_sprites)
+        self.move_along_path(path, SHOOTING_ENEMY_SPEED, all_sprites)
 
-        # Only shoot when in LOS and not on top of player
         if in_los and self.rect.center != player.rect.center:
             self.current_attack_delay -= 1
             if self.current_attack_delay <= 0:
                 self.current_attack_delay = self.attack_delay
                 all_sprites.remove(self.bullets)
-                print(self.rect.center)
-                print(player.rect.center)
-                self.bullets.add(EnemyBullet(center=self.rect.center, target=player.rect.center))
+                self.bullets.add(EnemyBullet(self.rect.center, player.rect.center, ENEMY_BULLET_SPEED))
                 all_sprites.add(self.bullets)
 
-        # If out of LOS and the current attack delay is lower than the minimum entered los attack delay,
-        # set the current attack delay to the minimum entered los attack delay
         elif self.current_attack_delay < self.entered_los_attack_delay:
             self.current_attack_delay = self.entered_los_attack_delay
 
@@ -255,12 +246,33 @@ class TestShootingEnemy(BaseEnemy):
 class TestBoss(BaseEnemy):
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets='assets/cat.png', center=center)
-        self.hp = 10
+        self.hp = 15
+
+        # Minimum time between attacks
+        self.attack_delay = 30
+        # If the enemy has already "reloaded" when out of LOS of you, wait this amount of time before actually firing
+        self.entered_los_attack_delay = 20
+        # If the enemy can immediately see you, do not attack immediately
+        self.current_attack_delay = self.attack_delay
+        self.bullets = pygame.sprite.Group()
 
     def update(self, all_sprites, player, game_map):
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
             return
 
+        in_los = line_of_sight(self.rect.center, player.rect.center, get_blocking_walls(all_sprites))
         path = self.lazy_theta_star(player.rect.center, all_sprites)
         self.move_along_path(path, BOSS_SPEED, all_sprites)
+
+        if in_los and self.rect.center != player.rect.center:
+            self.current_attack_delay -= 1
+            if self.current_attack_delay <= 0:
+                self.current_attack_delay = self.attack_delay
+                all_sprites.remove(self.bullets)
+
+                self.bullets.add(EnemyBullet(self.rect.center, player.rect.center, 8))
+                all_sprites.add(self.bullets)
+
+        elif self.current_attack_delay < self.entered_los_attack_delay:
+            self.current_attack_delay = self.entered_los_attack_delay

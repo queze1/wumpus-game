@@ -63,11 +63,14 @@ class EnemySpawner:
         self.is_boss = False
         self.waves_left = 0
         self.room_cleared = True
+        self.wave_delay = 60
+        self.current_wave_delay = 0
         self.enemies = pygame.sprite.Group()
 
     def room_setup(self, is_cleared, is_boss=False):
         self.enemies.empty()
         self.is_boss = is_boss
+        self.current_wave_delay = 0
         if is_cleared:
             self.waves_left = 0
         else:
@@ -87,17 +90,37 @@ class EnemySpawner:
                 self.enemies.add(TestBoss((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
                 self.waves_left -= 1
 
+            elif any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+                # Reset wave delay if enemies have spawned
+                self.current_wave_delay = self.wave_delay
+
             elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
-                # TODO: Make the enemies spawn at set spawning locations randomly and spawn different types of enemies
+                if self.current_wave_delay:
+                    self.current_wave_delay -= 1
+                    return False
+
+                # Used for sanity checking spawns
                 no_spawn = [sprite.rect.inflate(10, 10) for sprite in all_sprites if isinstance(sprite, Wall)]
-                no_spawn.append([sprite.rect.inflate(100, 100) for sprite in all_sprites
+                no_spawn.append([sprite.rect.inflate(400, 400) for sprite in all_sprites
                                  if isinstance(sprite, Player)][0])
 
-                for j in range(self.lvl_number):
-                    # Sanity checking
+                # Use points based system for spawning
+                enemies = {TestEnemy: 1, TestShootingEnemy: 2}
+                enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number + 2)
+                print(enemy_value)
+                current_enemy_value = 0
+                while current_enemy_value < enemy_value:
+                    chosen_enemy = random.choice(list(enemies))
+                    while True:
+                        if enemies[chosen_enemy] + current_enemy_value <= enemy_value:
+                            break
+                        chosen_enemy = random.choice(list(enemies))
+
+                    current_enemy_value += enemies[chosen_enemy]
+
                     sane = False
                     while not sane:
-                        enemy = TestShootingEnemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
+                        enemy = chosen_enemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
                         if enemy.rect.collidelist(no_spawn) == -1:
                             sane = True
 
