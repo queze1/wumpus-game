@@ -2,7 +2,7 @@
 This module provides access to the game map and the enemy generator.
 
 The game map generates the dungeon and places environmental objects when the player changes rooms.
-The enemy generator places enemies.
+The enemy generator places enemies and pathfinds for the enemies.
 """
 
 from itertools import chain
@@ -11,8 +11,8 @@ import random
 
 import pygame
 
-from config import WINDOW_HEIGHT, WINDOW_WIDTH
-from lib.Enemies import BaseEnemy, TestEnemy, TestShootingEnemy, TestBoss
+from config import *
+from lib import Enemies
 from lib.helpers import Direction
 from lib.Obstacles import Wall
 from lib.Player import Player
@@ -63,7 +63,6 @@ class EnemySpawner:
         self.is_boss = False
         self.waves_left = 0
         self.room_cleared = True
-        self.wave_delay = 60
         self.current_wave_delay = 0
         self.enemies = pygame.sprite.Group()
 
@@ -76,7 +75,7 @@ class EnemySpawner:
         else:
             self.lvl_number += 1
             if not is_boss:
-                self.waves_left = 2
+                self.waves_left = ROOM_WAVE_NUM
             else:
                 self.waves_left = 1
 
@@ -86,15 +85,17 @@ class EnemySpawner:
         Returns True if the room is cleared. Returns False if the room is not cleared.
         """
         if self.waves_left:
+            # Spawn the boss
             if self.is_boss:
-                self.enemies.add(TestBoss((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
+                self.enemies.add(Enemies.TestBoss((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
                 self.waves_left -= 1
 
-            elif any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+            elif any([isinstance(sprite, Enemies.BaseEnemy) for sprite in all_sprites]):
                 # Reset wave delay if enemies have spawned
-                self.current_wave_delay = self.wave_delay
+                self.current_wave_delay = WAVE_DELAY
 
-            elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+            elif not any([isinstance(sprite, Enemies.BaseEnemy) for sprite in all_sprites]):
+                # Handle wave delay
                 if self.current_wave_delay:
                     self.current_wave_delay -= 1
                     return False
@@ -105,9 +106,10 @@ class EnemySpawner:
                                  if isinstance(sprite, Player)][0])
 
                 # Use points based system for spawning
-                enemies = {TestEnemy: 1, TestShootingEnemy: 2}
-                enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number + 2)
-                print(enemy_value)
+                enemies = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
+                           Enemies.ChaserEnemy: Enemies.ChaserEnemy.DIFFICULTY}
+                enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number/2 + 2)
+
                 current_enemy_value = 0
                 while current_enemy_value < enemy_value:
                     chosen_enemy = random.choice(list(enemies))
@@ -131,7 +133,8 @@ class EnemySpawner:
 
             return False
 
-        elif not any([isinstance(sprite, BaseEnemy) for sprite in all_sprites]):
+        # If there are no enemies and all waves have been cleared, this room is cleared
+        elif not any([isinstance(sprite, Enemies.BaseEnemy) for sprite in all_sprites]):
             return True
 
 
@@ -263,6 +266,4 @@ class GameMap:
         else:
             self.enemy_spawner.room_setup(is_cleared=True)
 
-        
         minimap.render_minimap(self, all_sprites)
-

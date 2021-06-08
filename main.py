@@ -16,12 +16,12 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 # Create objects
 player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
-healthbar = Healthbar(player, center=(166,38))
+healthbar = Healthbar(player, center=HEALTHBAR_CENTER)
 background = Background()
 
 # Initialize map
-game_map = GameMap(10)
-minimap = Minimap(game_map, center=(WINDOW_WIDTH - 78, 78))
+game_map = GameMap(ROOM_NUM)
+minimap = Minimap(game_map, center=MINIMAP_CENTER)
 minimap.render_minimap(game_map, None)
 
 # maybe use LayeredUpdates()?

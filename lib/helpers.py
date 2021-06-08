@@ -64,8 +64,6 @@ class BaseSprite(pygame.sprite.Sprite):
             else:
                 self.image = pygame.image.load(image_assets).convert_alpha()
         elif isinstance(image_assets, list):
-            # image_assets = [('idle', 'assets/player/player_idle.png', [7,7], [width, height]),
-            #                 ('walking', 'assets/player/player_walking.png', [7,7,40], [width, height])]
             self.load_animation(image_assets)
             self.image = self.animation_frames[self.image_assets[self.state][self.animation_frame]]
 
@@ -87,7 +85,6 @@ class BaseSprite(pygame.sprite.Sprite):
         for image in image_assets:
             sprites = strip_from_sheet(pygame.image.load(image[1]), (0, 0), (image[3][0], image[3][1]), len(image[2]))
             self.animation_frames.update({f'{image[0]}_{sprites.index(sprite) + 1}': sprite for sprite in sprites})
-            print(self.animation_frames)
 
             self.image_assets[image[0]] = []
             x = 1
