@@ -36,6 +36,9 @@ damage_particles = {
 
 class Player(BaseSprite):
     SPEED = 5
+    MOMENTUM_COEFFICIENT = 0.66
+    KNOCKBACK = 30
+
     BULLET_SPEED = 20
     ATTACK_DELAY = 20
 
@@ -53,22 +56,11 @@ class Player(BaseSprite):
         self.hp = self.STARTING_MAX_HP
         self.current_attack_delay = 0
         self.current_damage_delay = 0
+        self.x_y = pygame.Vector2()  # Current vector velocity
+
         self.bullets = pygame.sprite.Group()
 
-    def update(self, all_sprites, player, game_map):
-        # TODO: Smooth out janky movement + proper knockback
-        # Movement
-        self.x_y = pygame.Vector2()
-        keys_pressed = pygame.key.get_pressed()
-        for key in KEY_TO_DIR:
-            if keys_pressed[key]:
-                self.x_y += KEY_TO_DIR[key]
-
-        if self.x_y:
-            self.x_y = self.x_y.normalize() * self.SPEED
-        x, y = self.x_y
-
-        # Handle damage
+    def handle_damage(self, all_sprites):
         self.current_damage_delay -= 1
         if self.current_damage_delay <= 0:
             # Check if you collided with an enemy or enemy bullet
@@ -81,16 +73,42 @@ class Player(BaseSprite):
                 self.current_damage_delay = self.DAMAGE_DELAY
 
                 # Find the closest enemy and only take damage from that one
-                closest_enemy = min(enemies, key=lambda sprite:
-                                    euclidean_distance(self.rect.center, sprite.rect.center))
-                if isinstance(closest_enemy, BaseEnemy):
-                    knockback_vector = closest_enemy.x_y
-                    self.x_y += knockback_vector * 3
-                elif isinstance(closest_enemy, EnemyBullet):
-                    closest_enemy.kill()
-                
+                enemy = min(enemies, key=lambda sprite: euclidean_distance(self.rect.center, sprite.rect.center))
+                if isinstance(enemy, BaseEnemy):
+                    knockback_vector = pygame.Vector2(self.rect.center) - pygame.Vector2(enemy.rect.center)
+                    if knockback_vector:
+                        knockback_vector = knockback_vector.normalize() * self.KNOCKBACK
+                    self.x_y += knockback_vector
+
+                elif isinstance(enemy, EnemyBullet):
+                    enemy.kill()
+
                 if self.hp == 0:
                     self.kill()
+                    return False
+
+        return True
+
+    def update(self, all_sprites, player, game_map):
+        # WASD movement
+        delta_x_y = pygame.Vector2()
+        keys_pressed = pygame.key.get_pressed()
+        for key in KEY_TO_DIR:
+            if keys_pressed[key]:
+                delta_x_y += KEY_TO_DIR[key]
+        # Normalise movement
+        if delta_x_y:
+            delta_x_y = delta_x_y.normalize() * self.SPEED
+
+        # Smooth out the velocity
+        self.x_y = self.x_y * self.MOMENTUM_COEFFICIENT + delta_x_y * (1 - self.MOMENTUM_COEFFICIENT)
+        if self.x_y.length() < 0.5:
+            self.x_y = pygame.Vector2()
+        x, y = self.x_y
+
+        # Handle damage
+        if not self.handle_damage(all_sprites):
+            return
 
         # Move with wall collision
         self.move_respecting_walls(self.x_y, all_sprites)
