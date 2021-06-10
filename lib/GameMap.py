@@ -107,7 +107,7 @@ class EnemySpawner:
 
                 # Use points based system for spawning
                 enemies = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
-                           Enemies.ChaserEnemy: Enemies.ChaserEnemy.DIFFICULTY}
+                           Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY}
                 enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number/2 + 2)
 
                 current_enemy_value = 0
@@ -219,13 +219,11 @@ class GameMap:
         room_exit_dirs = self.rooms[self.player_location][2]
 
         for direction in room_exit_dirs:
-            print(f'door closed at {direction}')
             for x, y in DIR_TO_EXIT_COORDS[direction]:
                 self.temp_walls.add(Wall((16 + (32 * x), 16 + (32 * y))))
             all_sprites.add(self.temp_walls)
 
     def unlock_room(self, all_sprites):
-        print('doors unlocked')
         all_sprites.remove(self.temp_walls)
         self.temp_walls.empty()
 

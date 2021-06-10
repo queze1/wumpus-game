@@ -1,5 +1,5 @@
 from .BaseEnemy import *
 from .BossEnemy import *
-from .ChaserEnemy import *
+from .ChargerEnemy import *
 from .EnemyBullet import *
 from .ShootingEnemy import *

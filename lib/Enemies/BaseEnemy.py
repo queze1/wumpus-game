@@ -14,10 +14,9 @@ def get_blocking_walls(all_sprites, inflate=(0, 0)):
     """
     Find the walls which can block LOS (not on the edge).
     Optional argument to inflate the walls for pathfinding purposes.
+    Optional argument to make the walls 1 pixel bigger because it breaks if you don't
     """
-
-    x, y = inflate
-    return [sprite.rect.inflate(x, y) for sprite in all_sprites
+    return [sprite.rect.inflate(inflate) for sprite in all_sprites
             if isinstance(sprite, Wall) and
             0 < (sprite.rect.centerx // 32) < 26 and
             0 < (sprite.rect.centery // 32) < 14]
@@ -30,28 +29,29 @@ def line_of_sight(loc, dest_loc, blocking_walls):
 
 
 def neighbours(loc, dest, blocking_walls):
-    # Inflate the walls by one pixel `to make LOS checking work
-    inflated_walls = [wall.inflate(2, 2) for wall in blocking_walls]
     # Take the corners of each wall
     important_points = list(chain.from_iterable(
-        [(wall.bottomleft, wall.bottomright, wall.topleft, wall.topright) for wall in inflated_walls]
+        [(wall.bottomleft, wall.bottomright, wall.topleft, wall.topright) for wall in blocking_walls]
     ))
     important_points.append(dest)
+
+    # Shrink the walls by 1 pixel for pathfinding
+    blocking_walls = [wall.inflate(-2, -2) for wall in blocking_walls]
+
     return [point for point in important_points if line_of_sight(loc, point, blocking_walls) and point != loc]
 
 
 def theta_star(start_rect, dest, all_sprites):
     """Uses theta* to calculate the optimal path."""
 
-    # Increase the size of the walls to account of the hitbox
+    # Increase the size of the walls to account of the hitbox, the walls are inflated by one more pixel for collision
     blocking_walls = get_blocking_walls(all_sprites, inflate=start_rect.size)
 
     # Adjust the destination if the destination is unreachable due to it being too close to a wall
     colliding_walls = [wall for wall in blocking_walls if wall.collidepoint(dest)]
     if any(colliding_walls):
         # Find all the walls that are touching this point and combine them
-        # Inflate by 1 pixel to make sure LOS check works
-        combined_wall = colliding_walls[0].unionall(colliding_walls).inflate(2, 2)
+        combined_wall = colliding_walls[0].unionall(colliding_walls)
 
         # Find the shortest distance to move the destination so that it is no longer too close to a wall
         x, y = dest
