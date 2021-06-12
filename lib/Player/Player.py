@@ -3,9 +3,9 @@
 import pygame
 
 from lib.Enemies import BaseEnemy, EnemyBullet
-from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction, WINDOW_RECT
-from lib.Obstacles import Wall
+from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction
 from lib.Particles import ParticleSpawner
+from lib.Player.Bullets import Bullet
 
 
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
@@ -18,14 +18,6 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_DOWN: Direction.DOWN,
                 pygame.K_RIGHT: Direction.RIGHT}
 
-
-bullet_particles = {
-    'velocity': ((-1, 1), (-1, 1)),
-    'radius': (3, 5),
-    'colour': (255, 236, 214),
-    'decay': 0.4
-}
-
 damage_particles = {
     'velocity': ((-3, 3), (-3, 3)),
     'radius': (2, 3),
@@ -36,10 +28,13 @@ damage_particles = {
 
 class Player(BaseSprite):
     SPEED = 5
+    MOMENTUM_COEFFICIENT = 0.66
+    KNOCKBACK = 30
+
     BULLET_SPEED = 20
     ATTACK_DELAY = 20
 
-    STARTING_MAX_HP = 100
+    STARTING_MAX_HP = 5
     DAMAGE_DELAY = 100  # How long the player receives invulnerability after taking damage
 
     # All the assets used for animations
@@ -53,22 +48,11 @@ class Player(BaseSprite):
         self.hp = self.STARTING_MAX_HP
         self.current_attack_delay = 0
         self.current_damage_delay = 0
+        self.x_y = pygame.Vector2()  # Current vector velocity
+
         self.bullets = pygame.sprite.Group()
 
-    def update(self, all_sprites, player, game_map):
-        # TODO: Smooth out janky movement + proper knockback
-        # Movement
-        self.x_y = pygame.Vector2()
-        keys_pressed = pygame.key.get_pressed()
-        for key in KEY_TO_DIR:
-            if keys_pressed[key]:
-                self.x_y += KEY_TO_DIR[key]
-
-        if self.x_y:
-            self.x_y = self.x_y.normalize() * self.SPEED
-        x, y = self.x_y
-
-        # Handle damage
+    def handle_damage(self, all_sprites):
         self.current_damage_delay -= 1
         if self.current_damage_delay <= 0:
             # Check if you collided with an enemy or enemy bullet
@@ -81,16 +65,40 @@ class Player(BaseSprite):
                 self.current_damage_delay = self.DAMAGE_DELAY
 
                 # Find the closest enemy and only take damage from that one
-                closest_enemy = min(enemies, key=lambda sprite:
-                                    euclidean_distance(self.rect.center, sprite.rect.center))
-                if isinstance(closest_enemy, BaseEnemy):
-                    knockback_vector = closest_enemy.x_y
-                    self.x_y += knockback_vector * 3
-                elif isinstance(closest_enemy, EnemyBullet):
-                    closest_enemy.kill()
-                
+                enemy = min(enemies, key=lambda sprite: euclidean_distance(self.rect.center, sprite.rect.center))
+                if isinstance(enemy, BaseEnemy):
+                    knockback_vector = pygame.Vector2(self.rect.center) - pygame.Vector2(enemy.rect.center)
+                    if knockback_vector:
+                        knockback_vector = knockback_vector.normalize() * self.KNOCKBACK
+                    self.x_y += knockback_vector
+
+                elif isinstance(enemy, EnemyBullet):
+                    enemy.kill()
+
                 if self.hp == 0:
                     self.kill()
+                    return False
+
+        return True
+
+    def update(self, all_sprites, player, game_map):
+        # WASD movement
+        delta_x_y = pygame.Vector2()
+        keys_pressed = pygame.key.get_pressed()
+        for key in KEY_TO_DIR:
+            if keys_pressed[key]:
+                delta_x_y += KEY_TO_DIR[key]
+        if delta_x_y:
+            delta_x_y = delta_x_y.normalize() * self.SPEED
+
+        # Smooth out the velocity
+        self.x_y = self.x_y * self.MOMENTUM_COEFFICIENT + delta_x_y * (1 - self.MOMENTUM_COEFFICIENT)
+        if self.x_y.length() < 0.5:
+            self.x_y = pygame.Vector2()
+
+        # Handle damage
+        if not self.handle_damage(all_sprites):
+            return
 
         # Move with wall collision
         self.move_respecting_walls(self.x_y, all_sprites)
@@ -111,50 +119,20 @@ class Player(BaseSprite):
             self.bullets.add(bullet)
 
         # Animation
-        if x > 0:
-            self.flip = False
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif abs(y) > 0:
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif x < 0:
-            self.flip = True
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        else: 
-            if self.current_damage_delay >= 0:
+        x, y = self.x_y
+        is_damaged = self.current_damage_delay > 0
+        if not self.x_y:
+            if is_damaged:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_idle')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
+        else:
+            if x:
+                self.flip = x < 0
+            if is_damaged:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
 
         self.update_animation()
-        all_sprites.add(self.particles)
-
-
-class Bullet(BaseSprite):
-    def __init__(self, direction, speed, center=(0, 0)):
-        super().__init__(image_assets='assets/bullet.png', center=center)
-        self.dir = direction * speed
-
-    def update(self, all_sprites, player, game_map):
-        self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
-
-        self.rect.move_ip(self.dir)
-
-        # Erase the bullet if it hits a wall or goes offscreen
-        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
-        if pygame.sprite.spritecollideany(self, walls):
-            self.kill()
-            return
-        if not self.rect.colliderect(WINDOW_RECT):
-            self.kill()
-            return
-
         all_sprites.add(self.particles)

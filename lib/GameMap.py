@@ -87,7 +87,7 @@ class EnemySpawner:
         if self.waves_left:
             # Spawn the boss
             if self.is_boss:
-                self.enemies.add(Enemies.TestBoss((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
+                self.enemies.add(Enemies.BossEnemy((WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2)))
                 self.waves_left -= 1
 
             elif any([isinstance(sprite, Enemies.BaseEnemy) for sprite in all_sprites]):
@@ -107,7 +107,7 @@ class EnemySpawner:
 
                 # Use points based system for spawning
                 enemies = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
-                           Enemies.ChaserEnemy: Enemies.ChaserEnemy.DIFFICULTY}
+                           Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY}
                 enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number/2 + 2)
 
                 current_enemy_value = 0
@@ -139,14 +139,28 @@ class EnemySpawner:
 
 
 class GameMap:
+    STARTING_ROOM = (0, 0)
+
     def __init__(self, num_rooms):
-        starting_room = (0, 0)
-        room_locs = [starting_room]
-        self.boss_room_loc = None
-        self.player_location = starting_room
+        self.player_location = self.STARTING_ROOM
         self.environmental_sprites = pygame.sprite.Group()
         self.temp_walls = pygame.sprite.Group()
         self.enemy_spawner = EnemySpawner()
+
+        # Generate the dungeon
+        self.rooms, self.boss_room_loc = self.sane_dungeon_gen(num_rooms)
+        print(self.boss_room_loc)
+
+        # Load starting room
+        self.environmental_sprites, _, _ = self.rooms[self.STARTING_ROOM]
+
+    def dungeon_gen(self, room_num):
+        """
+        Generates a dungeon, but doesn't guarantee that it is sane.
+        Output --> (rooms, boss_room_loc)
+        """
+        room_locs = [self.STARTING_ROOM]
+        boss_room_loc = False
 
         # Generate dungeon
         while True:
@@ -154,7 +168,7 @@ class GameMap:
                 # Iterate through all the room's neighbours, excluding any already occupied rooms
                 for neighbour in room_neighbours(room, exclude=room_locs):
                     # If enough rooms have been placed, give up
-                    if len(room_locs) == num_rooms:
+                    if len(room_locs) == room_num:
                         break
 
                     neighbour_free_spaces = room_neighbours(neighbour, room_locs)
@@ -166,34 +180,40 @@ class GameMap:
                     if random.random() > 0.5:
                         room_locs.append(neighbour)
 
-                if len(room_locs) == num_rooms:
+                if len(room_locs) == room_num:
                     break
 
-            if len(room_locs) == num_rooms:
+            if len(room_locs) == room_num:
                 break
 
         # Load a room for each room location
-        self.rooms = {}
+        rooms = {}
         for room_loc in reversed(room_locs):  # Iterate from the last placed rooms to place the boss room
             # Find the directions in which exits should be located
             exit_directions = []
-            # Order of room_neighbour is up, left, down, right WASD
+            # Order of room_neighbour and Direction is up, left, down, right
             for neighbour, direction in zip(room_neighbours(room_loc), Direction.UP_LEFT_DOWN_RIGHT):
                 if neighbour in room_locs:
                     exit_directions.append(direction)
 
-            if room_loc == starting_room:
-                self.rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True, exit_directions]
+            if room_loc == self.STARTING_ROOM:
+                rooms[room_loc] = [load_room(STARTING_LEVEL_PATH, exit_directions), True, exit_directions]
             # If the boss room has not been placed yet, and this room is a dead end, make this the boss room
-            elif not self.boss_room_loc and (len(exit_directions) == 1):
-                self.boss_room_loc = room_loc
-                self.rooms[room_loc] = [load_room(BOSS_LEVEL_PATH, exit_directions), False, exit_directions]
+            elif not boss_room_loc and len(exit_directions) == 1:
+                boss_room_loc = room_loc
+                rooms[room_loc] = [load_room(BOSS_LEVEL_PATH, exit_directions), False, exit_directions]
             else:
-                self.rooms[room_loc] = [load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions),
-                                        False, exit_directions]
+                rooms[room_loc] = [load_room(random.choice(NORMAL_LEVEL_PATHS), exit_directions),
+                                   False, exit_directions]
 
-        # Load starting room
-        self.environmental_sprites, _, _ = self.rooms[starting_room]
+        return rooms, boss_room_loc
+
+    def sane_dungeon_gen(self, room_num):
+        """Repeatably generate a dungeon until the sanity check succeeds."""
+        rooms, boss_room_loc = self.dungeon_gen(room_num)
+        while boss_room_loc and boss_room_loc in room_neighbours(self.STARTING_ROOM):
+            rooms, boss_room_loc = self.dungeon_gen(room_num)
+        return rooms, boss_room_loc
 
     @staticmethod
     def check_exited(rect):
@@ -215,17 +235,14 @@ class GameMap:
         self.rooms[self.player_location][1] = is_cleared
 
     def lock_room(self, all_sprites):
-        # TODO: Make the doors at the exits thinner
         room_exit_dirs = self.rooms[self.player_location][2]
 
         for direction in room_exit_dirs:
-            print(f'door closed at {direction}')
             for x, y in DIR_TO_EXIT_COORDS[direction]:
                 self.temp_walls.add(Wall((16 + (32 * x), 16 + (32 * y))))
             all_sprites.add(self.temp_walls)
 
     def unlock_room(self, all_sprites):
-        print('doors unlocked')
         all_sprites.remove(self.temp_walls)
         self.temp_walls.empty()
 
@@ -239,7 +256,6 @@ class GameMap:
         x, y = self.player_location
         x_change, y_change = dir_exited
         self.player_location = (x + x_change, y + y_change)
-        print(f'new location: {self.player_location}')
 
         # Change sprites
         all_sprites.remove(player.bullets)
@@ -258,6 +274,7 @@ class GameMap:
             player.rect.y -= y_change * WINDOW_HEIGHT
 
         if not is_cleared:
+            print(self.player_location)
             if self.player_location == self.boss_room_loc:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
             else:

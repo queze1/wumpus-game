@@ -32,6 +32,9 @@ class ShootingEnemy(BaseEnemy):
             self.bullets.empty()
             return
 
+        # Handle knockback
+        self.handle_knockback(all_sprites)
+
         # If not stunned, pathfind towards the player
         if self.current_attack_stun <= 0:
             path = self.lazy_theta_star(player.rect.center, all_sprites)
@@ -41,12 +44,14 @@ class ShootingEnemy(BaseEnemy):
         self.current_attack_delay -= 1
         self.current_attack_stun -= 1
 
+        # Check if bullet can reach the player without hitting a wall
         in_los = line_of_sight(self.rect.center, player.rect.center, get_blocking_walls(all_sprites))
 
         # Check if in LOS
         if in_los and self.rect.center != player.rect.center:
-            # Shoot at player if attack delay is over
-            if self.current_attack_delay <= 0 and self.current_attack_stun <= 0:
+            # Shoot at player if attack delay is over and not on top of enemy
+            if (self.current_attack_delay <= 0 and self.current_attack_stun <= 0 and
+                    self.rect.center != player.rect.center):
                 # Set attack stun and resent attack delay
                 self.current_attack_delay = self.ATTACK_DELAY
                 self.current_attack_stun = self.ATTACK_STUN
