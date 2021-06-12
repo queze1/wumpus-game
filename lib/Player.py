@@ -1,11 +1,13 @@
 """This module provides access to several classes that are associated with the player character."""
 
 import pygame
+from random import shuffle
 
 from lib.Enemies import BaseEnemy, EnemyBullet
 from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction, WINDOW_RECT
 from lib.Obstacles import Wall
 from lib.Particles import ParticleSpawner
+from lib.Cards import *
 
 
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
@@ -19,13 +21,6 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_RIGHT: Direction.RIGHT}
 
 
-bullet_particles = {
-    'velocity': ((-1, 1), (-1, 1)),
-    'radius': (3, 5),
-    'colour': (255, 236, 214),
-    'decay': 0.4
-}
-
 damage_particles = {
     'velocity': ((-3, 3), (-3, 3)),
     'radius': (2, 3),
@@ -36,11 +31,10 @@ damage_particles = {
 
 class Player(BaseSprite):
     SPEED = 5
-    MOMENTUM_COEFFICIENT = 0.66
+    MOMENTUM_COEFFICIENT = 0.7
     KNOCKBACK = 30
 
-    BULLET_SPEED = 20
-    ATTACK_DELAY = 20
+    ATTACK_DELAY = 5
 
     STARTING_MAX_HP = 5
     DAMAGE_DELAY = 100  # How long the player receives invulnerability after taking damage
@@ -56,7 +50,10 @@ class Player(BaseSprite):
         self.hp = self.STARTING_MAX_HP
         self.current_attack_delay = 0
         self.current_damage_delay = 0
-        self.x_y = pygame.Vector2()  # Current vector velocity
+        self.x_y = pygame.Vector2()  # Current vector velocitya
+        self.deck = [BaseAttack(), HeavyAttack(), Dash()]
+        shuffle(self.deck)
+        self.discard_pile = []
 
         self.bullets = pygame.sprite.Group()
 
@@ -96,6 +93,7 @@ class Player(BaseSprite):
         for key in KEY_TO_DIR:
             if keys_pressed[key]:
                 delta_x_y += KEY_TO_DIR[key]
+
         # Normalise movement
         if delta_x_y:
             delta_x_y = delta_x_y.normalize() * self.SPEED
@@ -122,25 +120,34 @@ class Player(BaseSprite):
         self.current_attack_delay -= 1
         arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]
         # If only one arrow key is pressed and the attack delay is over, shoot
+        if not self.deck:
+            self.deck = self.discard_pile
+            self.discard_pile = []
+            shuffle(self.deck)
         if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1: 
             self.current_attack_delay = self.ATTACK_DELAY
             bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
-            bullet = Bullet(bullet_dir, self.BULLET_SPEED, center=self.rect.center)
-            self.bullets.add(bullet)
+
+            card = self.deck.pop(0)
+            card.cast(self, bullet_dir)
+            self.discard_pile.append(card)
+            print(self.deck)
+            
 
         # Animation
-        if x > 0:
+        raw_x, raw_y = delta_x_y
+        if raw_x > 0:
             self.flip = False
             if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif abs(y) > 0:
+        elif abs(raw_y) > 0:
             if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif x < 0:
+        elif raw_x < 0:
             self.flip = True
             if self.current_damage_delay >= 0:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
@@ -153,26 +160,4 @@ class Player(BaseSprite):
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
 
         self.update_animation()
-        all_sprites.add(self.particles)
-
-
-class Bullet(BaseSprite):
-    def __init__(self, direction, speed, center=(0, 0)):
-        super().__init__(image_assets='assets/bullet.png', center=center)
-        self.dir = direction * speed
-
-    def update(self, all_sprites, player, game_map):
-        self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
-
-        self.rect.move_ip(self.dir)
-
-        # Erase the bullet if it hits a wall or goes offscreen
-        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
-        if pygame.sprite.spritecollideany(self, walls):
-            self.kill()
-            return
-        if not self.rect.colliderect(WINDOW_RECT):
-            self.kill()
-            return
-
         all_sprites.add(self.particles)
