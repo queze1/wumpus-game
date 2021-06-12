@@ -24,8 +24,7 @@ game_map = GameMap(ROOM_NUM)
 minimap = Minimap(game_map, center=MINIMAP_CENTER)
 minimap.render_minimap(game_map, None)
 
-# maybe use LayeredUpdates()?
-all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in ORDER OF ADDITION
+all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in order of addition
 all_sprites.add(background)
 all_sprites.add(game_map.environmental_sprites)
 all_sprites.add(player)

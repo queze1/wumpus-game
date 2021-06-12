@@ -1,5 +1,7 @@
+# BaseEnemy and EnemyBullet must be imported first
 from .BaseEnemy import *
-from .BossEnemy import *
-from .ChargerEnemy import *
 from .EnemyBullet import *
-from .ShootingEnemy import *
+
+from .BossEnemy import BaseEnemy
+from .ChargerEnemy import ChargerEnemy
+from .ShootingEnemy import ShootingEnemy

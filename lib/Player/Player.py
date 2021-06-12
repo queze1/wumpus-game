@@ -3,9 +3,9 @@
 import pygame
 
 from lib.Enemies import BaseEnemy, EnemyBullet
-from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction, WINDOW_RECT
-from lib.Obstacles import Wall
+from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction
 from lib.Particles import ParticleSpawner
+from lib.Player.Bullets import Bullet
 
 
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
@@ -17,14 +17,6 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_LEFT: Direction.LEFT,
                 pygame.K_DOWN: Direction.DOWN,
                 pygame.K_RIGHT: Direction.RIGHT}
-
-
-bullet_particles = {
-    'velocity': ((-1, 1), (-1, 1)),
-    'radius': (3, 5),
-    'colour': (255, 236, 214),
-    'decay': 0.4
-}
 
 damage_particles = {
     'velocity': ((-3, 3), (-3, 3)),
@@ -156,23 +148,3 @@ class Player(BaseSprite):
         all_sprites.add(self.particles)
 
 
-class Bullet(BaseSprite):
-    def __init__(self, direction, speed, center=(0, 0)):
-        super().__init__(image_assets='assets/bullet.png', center=center)
-        self.dir = direction * speed
-
-    def update(self, all_sprites, player, game_map):
-        self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
-
-        self.rect.move_ip(self.dir)
-
-        # Erase the bullet if it hits a wall or goes offscreen
-        walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
-        if pygame.sprite.spritecollideany(self, walls):
-            self.kill()
-            return
-        if not self.rect.colliderect(WINDOW_RECT):
-            self.kill()
-            return
-
-        all_sprites.add(self.particles)

@@ -21,8 +21,8 @@ class Vector(pygame.math.Vector2):
 
 class Direction:
     UP = Vector(0, -1)
-    DOWN = Vector(0, 1)
     LEFT = Vector(-1, 0)
+    DOWN = Vector(0, 1)
     RIGHT = Vector(1, 0)
     UP_LEFT_DOWN_RIGHT = (UP, LEFT, DOWN, RIGHT)  # WASD
 
@@ -50,7 +50,6 @@ def strip_from_sheet(sheet, start, size, columns, rows=1):
 class BaseSprite(pygame.sprite.Sprite):
     def __init__(self, image_assets=None, center=(0, 0), alpha=False):
         super().__init__()
-        self.x_y = pygame.Vector2()
         self.flip = False
         self.state = 'idle'
         self.animation_frame = 0
