@@ -2,6 +2,6 @@
 from .BaseEnemy import *
 from .EnemyBullet import *
 
-from .BossEnemy import BaseEnemy
+from .BossEnemy import BossEnemy
 from .ChargerEnemy import ChargerEnemy
 from .ShootingEnemy import ShootingEnemy

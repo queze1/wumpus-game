@@ -88,7 +88,6 @@ class Player(BaseSprite):
         for key in KEY_TO_DIR:
             if keys_pressed[key]:
                 delta_x_y += KEY_TO_DIR[key]
-        # Normalise movement
         if delta_x_y:
             delta_x_y = delta_x_y.normalize() * self.SPEED
 
@@ -96,7 +95,6 @@ class Player(BaseSprite):
         self.x_y = self.x_y * self.MOMENTUM_COEFFICIENT + delta_x_y * (1 - self.MOMENTUM_COEFFICIENT)
         if self.x_y.length() < 0.5:
             self.x_y = pygame.Vector2()
-        x, y = self.x_y
 
         # Handle damage
         if not self.handle_damage(all_sprites):
@@ -121,30 +119,20 @@ class Player(BaseSprite):
             self.bullets.add(bullet)
 
         # Animation
-        if x > 0:
-            self.flip = False
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif abs(y) > 0:
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        elif x < 0:
-            self.flip = True
-            if self.current_damage_delay >= 0:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
-            else:
-                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
-        else: 
-            if self.current_damage_delay >= 0:
+        x, y = self.x_y
+        is_damaged = self.current_damage_delay > 0
+        if not self.x_y:
+            if is_damaged:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_idle')
             else:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'idle')
+        else:
+            if x:
+                self.flip = x < 0
+            if is_damaged:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_walking')
+            else:
+                self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'walking')
 
         self.update_animation()
         all_sprites.add(self.particles)
-
-

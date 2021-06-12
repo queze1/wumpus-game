@@ -14,7 +14,6 @@ def get_blocking_walls(all_sprites, inflate=(0, 0)):
     """
     Find the walls which can block LOS (not on the edge).
     Optional argument to inflate the walls for pathfinding purposes.
-    Optional argument to make the walls 1 pixel bigger because it breaks if you don't
     """
     return [sprite.rect.inflate(inflate) for sprite in all_sprites
             if isinstance(sprite, Wall) and
