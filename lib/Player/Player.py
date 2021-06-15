@@ -18,6 +18,7 @@ ARROW_TO_DIR = {pygame.K_UP: Direction.UP,
                 pygame.K_DOWN: Direction.DOWN,
                 pygame.K_RIGHT: Direction.RIGHT}
 
+
 damage_particles = {
     'velocity': ((-3, 3), (-3, 3)),
     'radius': (2, 3),
