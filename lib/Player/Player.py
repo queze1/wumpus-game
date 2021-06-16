@@ -1,11 +1,12 @@
 """This module provides access to several classes that are associated with the player character."""
-
+from random import shuffle
 import pygame
 
 from lib.Enemies import BaseEnemy, EnemyBullet
 from lib.helpers import BaseSprite, change_action, euclidean_distance, Direction
 from lib.Particles import ParticleSpawner
 from lib.Player.Bullets import Bullet
+from lib.Player.Cards import *
 
 
 KEY_TO_DIR = {pygame.K_w: Direction.UP,
@@ -49,6 +50,10 @@ class Player(BaseSprite):
         self.current_attack_delay = 0
         self.current_damage_delay = 0
         self.x_y = pygame.Vector2()  # Current vector velocity
+
+        self.deck = [BaseAttack()]
+        self.discard_pile = []
+        self.attack_delay = self.ATTACK_DELAY - (len(self.deck)*3)
 
         self.bullets = pygame.sprite.Group()
 
@@ -112,16 +117,22 @@ class Player(BaseSprite):
         self.current_attack_delay -= 1
         arrow_keys_pressed = [key for key in ARROW_TO_DIR if keys_pressed[key]]
         # If only one arrow key is pressed and the attack delay is over, shoot
+        if not self.deck:
+            self.deck = self.discard_pile
+            self.discard_pile = []
+
         if self.current_attack_delay <= 0 and len(arrow_keys_pressed) == 1: 
             self.current_attack_delay = self.ATTACK_DELAY
             bullet_dir = ARROW_TO_DIR[arrow_keys_pressed[0]]
-            bullet = Bullet(bullet_dir, self.BULLET_SPEED, center=self.rect.center)
-            self.bullets.add(bullet)
+            card = self.deck.pop(0)
+            card.cast(self, bullet_dir)
+            self.discard_pile.append(card)
+            print(self.deck)
 
         # Animation
-        x, y = self.x_y
+        x, y = delta_x_y
         is_damaged = self.current_damage_delay > 0
-        if not self.x_y:
+        if not delta_x_y:
             if is_damaged:
                 self.state, self.animation_frame = change_action(self.state, self.animation_frame, 'damaged_idle')
             else:

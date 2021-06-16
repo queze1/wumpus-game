@@ -5,23 +5,16 @@ from lib.Particles import ParticleSpawner
 from lib.Obstacles import Wall
 
 
-bullet_particles = {
-    'velocity': ((-1, 1), (-1, 1)),
-    'radius': (3, 5),
-    'colour': (255, 236, 214),
-    'decay': 0.4
-}
-
-
 class Bullet(BaseSprite):
     KNOCKBACK = 5
 
-    def __init__(self, direction, speed, center=(0, 0)):
-        super().__init__(image_assets='assets/bullet.png', center=center)
+    def __init__(self, direction, speed, particles, bullet_image, center=(0, 0)):
+        super().__init__(image_assets=bullet_image, center=center)
         self.dir = direction * speed
+        self.bullet_particles = particles
 
     def update(self, all_sprites, player, game_map):
-        self.particles.add(ParticleSpawner(self.rect.center, 1, bullet_particles))
+        self.particles.add(ParticleSpawner(self.rect.center, 1, self.bullet_particles))
 
         self.rect.move_ip(self.dir)
 
