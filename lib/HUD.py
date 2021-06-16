@@ -86,3 +86,26 @@ class Healthbar(BaseSprite):
         self.image.blit(self.base_image, (0,0))
         for x in range(0,self.maintained_hp):
             self.image.blit(self.heart_image, (x * 64, 0))
+
+
+class Cards(BaseSprite):
+    def __init__(self, player, center=(0,0)):
+        super().__init__(image_assets='assets/deck/background.png', center=center, alpha=True)
+        self.base_image = pygame.image.load('assets/deck/background.png')
+        self.image.set_colorkey((1, 1, 1))
+        self.maintained_deck_length = len(player.deck)
+        self.render_cards(player)
+
+    def update(self, all_sprites, player, game_map):
+
+        if self.maintained_deck_length != len(player.deck):
+            self.maintained_deck_length = len(player.deck)
+            self.render_cards(player)
+                
+        all_sprites.remove(self)
+        all_sprites.add(self)
+
+    def render_cards(self, player):
+        self.image.blit(self.base_image, (0,0))
+        for x, card in enumerate(player.deck):
+            self.image.blit(card.icon, ((x) * 64, 0))
