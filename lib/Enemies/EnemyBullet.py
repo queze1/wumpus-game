@@ -5,9 +5,9 @@ from lib.Obstacles import Wall
 
 
 class EnemyBullet(BaseSprite):
-    def __init__(self, center, target, speed):
+    def __init__(self, center, direction):
         super().__init__(image_assets='assets/enemy_bullet.png', center=center)
-        self.direction = (pygame.Vector2(target) - pygame.Vector2(center)).normalize() * speed
+        self.direction = direction
 
     def update(self, all_sprites, player, gamemap):
         x, y = self.direction

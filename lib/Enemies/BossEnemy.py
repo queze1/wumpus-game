@@ -27,8 +27,6 @@ class BossEnemy(BaseEnemy):
         # Handle taking damage
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:
-            all_sprites.remove(self.bullets)
-            self.bullets.empty()
             return
 
         # Handle knockback
@@ -52,7 +50,9 @@ class BossEnemy(BaseEnemy):
 
                 # Add bullet
                 all_sprites.remove(self.bullets)
-                self.bullets.add(EnemyBullet(self.rect.center, player.rect.center, self.BULLET_SPEED))
+                enemy_dir = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
+                enemy_dir = enemy_dir.normalize() * self.BULLET_SPEED
+                self.bullets.add(EnemyBullet(self.rect.center, enemy_dir))
                 all_sprites.add(self.bullets)
 
         # If the enemy is out of LOS, don't tick down the attack delay to much

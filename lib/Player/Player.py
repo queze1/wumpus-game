@@ -36,7 +36,7 @@ class Player(BaseSprite):
     BULLET_SPEED = 20
     ATTACK_DELAY = 20
 
-    STARTING_MAX_HP = 5
+    STARTING_MAX_HP = 100
     DAMAGE_DELAY = 100  # How long the player receives invulnerability after taking damage
 
     # All the assets used for animations
