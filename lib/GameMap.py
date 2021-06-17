@@ -1,11 +1,12 @@
 """
 This module provides access to the game map and the enemy generator.
 
-The game map generates the dungeon and places environmental objects when the player changes rooms.
-The enemy generator places enemies and pathfinds for the enemies.
+The game map generates the dungeon and places and removes objects when the player changes rooms.
+The enemy generator places enemies.
 """
 
 from itertools import chain
+from math import e
 import os
 import random
 
@@ -13,10 +14,8 @@ import pygame
 
 from config import *
 from lib import Enemies
-from lib.helpers import Direction
+from lib.helpers import BaseSprite, Direction
 from lib.Obstacles import Wall
-from lib.Player import Player
-
 
 LEVEL_PATH = 'assets/levels'
 NORMAL_LEVEL_PATHS = [f'{LEVEL_PATH}/{name}' for name in os.listdir(LEVEL_PATH) if name.startswith('normal')]
@@ -70,6 +69,7 @@ class EnemySpawner:
         self.enemies.empty()
         self.is_boss = is_boss
         self.current_wave_delay = 0
+
         if is_cleared:
             self.waves_left = 0
         else:
@@ -79,7 +79,36 @@ class EnemySpawner:
             else:
                 self.waves_left = 1
 
-    def spawn_enemies(self, all_sprites):
+    def create_wave(self, all_sprites, player):
+        enemies = pygame.sprite.Group()
+
+        # Used for sanity checking spawns
+        no_spawn = [sprite.rect.inflate(20, 20) for sprite in all_sprites if isinstance(sprite, Wall)]
+        no_spawn.append(player.rect.inflate(400, 400))
+
+        # Use points based system for spawning
+        enemy_dict = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
+                      Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY,
+                      Enemies.UpgradedShootingEnemy: Enemies.UpgradedShootingEnemy.DIFFICULTY}
+
+        # Modified sigmund function to determine number of enemies to spawn
+        num_enemies = int(6 / (1 + (e ** ((self.lvl_number - 5) / -2))) + 3)
+
+        for j in range(num_enemies):
+            chosen_enemy = random.choice(list(enemy_dict))
+
+            sane = False
+            while not sane:
+                enemy = chosen_enemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
+                if enemy.rect.collidelist(no_spawn) == -1:
+                    sane = True
+
+            enemies.add(enemy)
+            no_spawn.append(enemy.rect.inflate(20, 20))
+
+        return enemies
+
+    def spawn_enemies(self, all_sprites, player):
         """
         Spawns enemies. Before entering a room with enemies, call room_setup().
         Returns True if the room is cleared. Returns False if the room is not cleared.
@@ -100,35 +129,7 @@ class EnemySpawner:
                     self.current_wave_delay -= 1
                     return False
 
-                # Used for sanity checking spawns
-                no_spawn = [sprite.rect.inflate(10, 10) for sprite in all_sprites if isinstance(sprite, Wall)]
-                no_spawn.append([sprite.rect.inflate(400, 400) for sprite in all_sprites
-                                 if isinstance(sprite, Player)][0])
-
-                # Use points based system for spawning
-                enemies = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
-                           Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY}
-                enemy_value = int(self.lvl_number ** 1.1 + self.lvl_number/2 + 2)
-
-                current_enemy_value = 0
-                while current_enemy_value < enemy_value:
-                    chosen_enemy = random.choice(list(enemies))
-                    while True:
-                        if enemies[chosen_enemy] + current_enemy_value <= enemy_value:
-                            break
-                        chosen_enemy = random.choice(list(enemies))
-
-                    current_enemy_value += enemies[chosen_enemy]
-
-                    sane = False
-                    while not sane:
-                        enemy = chosen_enemy((random.randint(0, WINDOW_WIDTH), random.randint(0, WINDOW_HEIGHT)))
-                        if enemy.rect.collidelist(no_spawn) == -1:
-                            sane = True
-
-                    self.enemies.add(enemy)
-                    no_spawn.append(enemy.rect.inflate(20, 20))
-
+                self.enemies = self.create_wave(all_sprites, player)
                 self.waves_left -= 1
 
             return False
@@ -274,7 +275,6 @@ class GameMap:
             player.rect.y -= y_change * WINDOW_HEIGHT
 
         if not is_cleared:
-            print(self.player_location)
             if self.player_location == self.boss_room_loc:
                 self.enemy_spawner.room_setup(is_cleared=False, is_boss=True)
             else:

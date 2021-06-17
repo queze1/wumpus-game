@@ -112,6 +112,8 @@ def theta_star(start_rect, dest, all_sprites):
 
 
 class BaseEnemy(BaseSprite):
+    SPAWNING_IN_DELAY = 30  # How long the enemies are immobile when spawning in
+
     KNOCKBACK_MULTIPLIER = 1
     KNOCKBACK_MOMENTUM = 0.9
 
@@ -128,7 +130,7 @@ class BaseEnemy(BaseSprite):
         if random.random() > 0.5:
             self._current_recalculation_delay -= 1
         if self._current_recalculation_delay > 0:
-            # Adjust the target
+            # Adjust the targets
             self._path = self._path[:-1] + [dest]
         else:
             # Recalculate the entire path
@@ -178,13 +180,13 @@ class BaseEnemy(BaseSprite):
                 hp_left -= 1
                 bullet.kill()
 
-                # Add knockback
-                knockback_vector = bullet.dir.normalize() * bullet.KNOCKBACK * self.KNOCKBACK_MULTIPLIER
-                self._knockback_vector += knockback_vector
-
                 if hp_left == 0:
                     self.kill()
                     return 0
+
+                # Add knockback
+                knockback_vector = bullet.dir.normalize() * bullet.KNOCKBACK * self.KNOCKBACK_MULTIPLIER
+                self._knockback_vector += knockback_vector
 
         return hp_left
 
@@ -193,31 +195,3 @@ class BaseEnemy(BaseSprite):
         self._knockback_vector *= self.KNOCKBACK_MOMENTUM
         if self._knockback_vector.length() < 1:
             self._knockback_vector = pygame.Vector2()
-
-    """
-    def handle_collision(self, all_sprites):
-        enemies = [sprite for sprite in all_sprites if isinstance(sprite, BaseEnemy) and sprite != self]
-        for enemy in enemies:
-            x_dist, y_dist = pygame.Vector2(self.rect.center) - pygame.Vector2(enemy.rect.center)
-            # Normalise to a proportion of the enemy's width from the center and height from the center
-            x_dist /= enemy.rect.width / 2
-            y_dist /= enemy.rect.height / 2
-            if x_dist == 0 or y_dist == 0:
-                continue
-
-            x_force, y_force = 0, 0
-            if abs(x_dist) < 1:
-                # Scale with the inverse square law
-                x_force = 1 / x_dist ** 2
-                if x_dist < 0:
-                    x_force *= -1
-
-            if abs(y_dist) < 1:
-                # Scale with the inverse square law
-                y_force = 1 / x_dist ** 2
-                if y_dist < 0:
-                    y_force *= -1
-
-            force = pygame.Vector2(x_force, y_force)
-            self.move_respecting_walls(force, all_sprites)
-        """
