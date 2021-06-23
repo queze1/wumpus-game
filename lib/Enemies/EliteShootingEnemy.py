@@ -10,22 +10,18 @@ class STATE(enum.Enum):
     SPAWNING_IN = 0
     CHASING = 1
     STUNNED = 2
-    SHOOTING = 3
 
 
-class UpgradedShootingEnemy(BaseEnemy):
+class EliteShootingEnemy(BaseEnemy):
     DIFFICULTY = 2  # How much this enemy is worth in spawning
 
     ATTACK_DELAY = 90
     ENTERED_LOS_ATTACK_DELAY = 30  # If the player enters LOS, how long to wait before shooting
-    ATTACK_STUN = 45  # How long to stop after attacking
+    ATTACK_STUN = 30  # How long to stop after attacking
     MAX_HP = 4
 
-    BULLET_NUM = 3
-    REPEAT_ATTACK_DELAY = 10
-
     SPEED = 3
-    BULLET_SPEED = 7
+    BULLET_SPEED = 6
 
     IMAGE_PATH = 'assets/upgraded_shooter.png'
 
@@ -36,10 +32,6 @@ class UpgradedShootingEnemy(BaseEnemy):
 
         self.current_attack_delay = self.ATTACK_DELAY
         self.current_attack_stun = 0
-
-        self.current_bullet_dir = pygame.Vector2()  # Direction for the volley of bullets
-        self.current_bullet_num = 0
-        self.current_repeat_delay = 0
 
         self.hp = self.MAX_HP
         self.bullets = pygame.sprite.Group()
@@ -69,23 +61,6 @@ class UpgradedShootingEnemy(BaseEnemy):
             if self.current_attack_stun <= 0:
                 self.state = STATE.CHASING
 
-        elif self.state == STATE.SHOOTING:
-            # Tick down repeat attack delay
-            self.current_repeat_delay -= 1
-            if self.current_repeat_delay <= 0:
-                # Reset repeat attack delay
-                self.current_repeat_delay = self.REPEAT_ATTACK_DELAY
-
-                # Fire a bullet in a fixed direction
-                all_sprites.remove(self.bullets)
-                self.bullets.add(EnemyBullet(self.rect.center, self.current_bullet_dir))
-                all_sprites.add(self.bullets)
-
-                self.current_bullet_num += 1
-                # If enough bullets have been shot, switch to stunned state
-                if self.current_bullet_num == self.BULLET_NUM:
-                    self.state = STATE.STUNNED
-
         # If chasing the player, pathfind towards the player
         elif self.state == STATE.CHASING:
             path = self.lazy_theta_star(player.rect.center, all_sprites)
@@ -99,13 +74,18 @@ class UpgradedShootingEnemy(BaseEnemy):
                 # Set attack stun, reset attack delay, reset repeat attack delay and reset attack num
                 self.current_attack_delay = self.ATTACK_DELAY
                 self.current_attack_stun = self.ATTACK_STUN
-                self.current_repeat_delay = 0
-                self.current_bullet_num = 0
 
-                # Set the direction of the bullet volley and set the state to shooting
-                self.current_bullet_dir = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
-                self.current_bullet_dir = self.current_bullet_dir.normalize() * self.BULLET_SPEED
-                self.state = STATE.SHOOTING
+                # Create the directions for a volley of three bullets
+                direction = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
+                direction = direction.normalize() * self.BULLET_SPEED
+                volley_dirs = [direction, direction.rotate(30), direction.rotate(-30)]
+
+                all_sprites.remove(self.bullets)
+                for bullet_dir in volley_dirs:
+                    self.bullets.add(EnemyBullet(self.rect.center, bullet_dir))
+                all_sprites.add(self.bullets)
+
+                self.state = STATE.STUNNED
 
             # If the enemy is out of LOS, don't tick down the attack delay to zero
             elif self.current_attack_delay < self.ENTERED_LOS_ATTACK_DELAY and not in_los:

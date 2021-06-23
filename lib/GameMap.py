@@ -87,9 +87,9 @@ class EnemySpawner:
         no_spawn.append(player.rect.inflate(400, 400))
 
         # Use points based system for spawning
-        enemy_dict = {Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
-                      Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY,
-                      Enemies.UpgradedShootingEnemy: Enemies.UpgradedShootingEnemy.DIFFICULTY}
+        enemy_dict = {#Enemies.ShootingEnemy: Enemies.ShootingEnemy.DIFFICULTY,
+                      #Enemies.ChargerEnemy: Enemies.ChargerEnemy.DIFFICULTY,
+                      Enemies.EliteShootingEnemy: Enemies.EliteShootingEnemy.DIFFICULTY}
 
         # Modified sigmund function to determine number of enemies to spawn
         num_enemies = int(6 / (1 + (e ** ((self.lvl_number - 5) / -2))) + 3)

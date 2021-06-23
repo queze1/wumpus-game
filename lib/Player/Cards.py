@@ -1,8 +1,6 @@
 import pygame
 
-from lib.helpers import BaseSprite, WINDOW_RECT, Direction
-from lib.Particles import ParticleSpawner
-from lib.Obstacles import Wall
+from lib.helpers import Direction
 from lib.Player.Bullets import Bullet
 
 
@@ -28,6 +26,7 @@ class BaseAttack:
         center = entity.rect.center
         self.bullets.add(Bullet(direction, self.bullet_speed,  self.particle, self.bullet, center=center))
         entity.bullets.add(self.bullets)
+
 
 class HeavyAttack:
     DAMAGE = 2
@@ -105,8 +104,3 @@ class Dash:
 
     def shoot_bullet(self, direction, center):
         self.bullets.add(Bullet(direction, self.bullet_speed,  self.particle, self.bullet, center=center))
-
-        
-
-
-

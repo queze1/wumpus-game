@@ -36,7 +36,7 @@ class Player(BaseSprite):
     BULLET_SPEED = 20
     ATTACK_DELAY = 20
 
-    STARTING_MAX_HP = 100
+    STARTING_MAX_HP = 5
     DAMAGE_DELAY = 100  # How long the player receives invulnerability after taking damage
 
     # All the assets used for animations
@@ -128,7 +128,6 @@ class Player(BaseSprite):
             card = self.deck.pop(0)
             card.cast(self, bullet_dir)
             self.discard_pile.append(card)
-            print(self.deck)
 
         # Animation
         x, y = delta_x_y

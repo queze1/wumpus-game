@@ -5,4 +5,4 @@ from .EnemyBullet import *
 from .BossEnemy import BossEnemy
 from .ChargerEnemy import ChargerEnemy
 from .ShootingEnemy import ShootingEnemy
-from .UpgradedShootingEnemy import UpgradedShootingEnemy
+from .EliteShootingEnemy import EliteShootingEnemy
