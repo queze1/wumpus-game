@@ -18,6 +18,7 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("game")
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
+
 def main_menu():
     click = False
 
@@ -32,7 +33,7 @@ def main_menu():
     menu_sprites.add(title)
     menu_sprites.add(exit_button)
 
-    while 1:
+    while True:
         menu_sprites.clear(window, menu_background.image)
         menu_sprites.update()
 
@@ -91,7 +92,7 @@ def pause_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit() 
-                syx.exit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
@@ -99,6 +100,7 @@ def pause_menu():
         rects = menu_sprites.draw(window)
         pygame.display.update(rects)
         clock.tick(60)
+
 
 def death_menu():
     click = False
@@ -114,7 +116,7 @@ def death_menu():
     menu_sprites.add(title)
     menu_sprites.add(exit_button)
 
-    while 1:
+    while True:
         menu_sprites.clear(window, menu_background.image)
         menu_sprites.update()
 

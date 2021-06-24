@@ -29,7 +29,7 @@ damage_particles = {
 
 
 class Player(BaseSprite):
-    SPEED = 5
+    SPEED = 20
     MOMENTUM_COEFFICIENT = 0.66
     KNOCKBACK = 30
 
@@ -66,7 +66,6 @@ class Player(BaseSprite):
             enemies = [sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))]        
             self.colliding_rect = self.rect.inflate(1,-16)
             enemies_collided = self.colliding_rect.collidelist([enemy.rect for enemy in enemies])
-            print(enemies_collided)
 
             if enemies_collided != -1:
                 self.particles.add(ParticleSpawner(self.rect.center, 10, damage_particles))
