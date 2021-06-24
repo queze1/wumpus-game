@@ -55,6 +55,7 @@ class Player(BaseSprite):
         self.deck = [BaseAttack()]
         self.discard_pile = []
         self.attack_delay = self.ATTACK_DELAY - (len(self.deck)*3)
+        self.colliding_rect = self.rect.inflate(1,-16)
 
         self.bullets = pygame.sprite.Group()
 
@@ -62,10 +63,12 @@ class Player(BaseSprite):
         self.current_damage_delay -= 1
         if self.current_damage_delay <= 0:
             # Check if you collided with an enemy or enemy bullet
-            enemies = [sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))]
-            enemies_collided = pygame.sprite.spritecollide(self, enemies, False)
+            enemies = [sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))]        
+            self.colliding_rect = self.rect.inflate(1,-16)
+            enemies_collided = self.colliding_rect.collidelist([enemy.rect for enemy in enemies])
+            print(enemies_collided)
 
-            if enemies_collided:
+            if enemies_collided != -1:
                 self.particles.add(ParticleSpawner(self.rect.center, 10, damage_particles))
                 self.hp -= 1
                 self.current_damage_delay = self.DAMAGE_DELAY
