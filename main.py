@@ -100,6 +100,47 @@ def pause_menu():
         pygame.display.update(rects)
         clock.tick(60)
 
+def death_menu():
+    click = False
+
+    menu_background = MenuBackground()
+    game_button = GameButton()
+    title = DeathTitle()
+    exit_button = GameCloseButton()
+
+    menu_sprites = pygame.sprite.OrderedUpdates()
+    menu_sprites.add(menu_background)
+    menu_sprites.add(game_button)
+    menu_sprites.add(title)
+    menu_sprites.add(exit_button)
+
+    while 1:
+        menu_sprites.clear(window, menu_background.image)
+        menu_sprites.update()
+
+        mx, my = pygame.mouse.get_pos()
+ 
+        if game_button.rect.collidepoint((mx, my)):
+            if click:
+                game()
+        if exit_button.rect.collidepoint((mx, my)):
+            if click:
+                pygame.quit()
+                sys.exit()                
+ 
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit() 
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+ 
+        rects = menu_sprites.draw(window)
+        pygame.display.update(rects)
+        clock.tick(60)
+
 def game():
     # Create objects
     player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
@@ -140,11 +181,14 @@ def game():
         all_sprites.add(player.bullets)
 
         if not game_map.is_cleared():
-            is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)
+            is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites, player)
             if is_cleared:
                 game_map.unlock_room(all_sprites)
                 player.deck.append(random.choice([BaseAttack(), Dash(), HeavyAttack()]))
                 game_map.set_cleared(True)
+
+        if player not in all_sprites:
+            death_menu()
 
         all_sprites.add(game_map.enemy_spawner.enemies)
         all_sprites.update(all_sprites, player, game_map)
