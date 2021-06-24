@@ -59,12 +59,11 @@ class Player(BaseSprite):
 
         self.bullets = pygame.sprite.Group()
 
-    def handle_damage(self, all_sprites):
+    def handle_damage(self, all_sprites, deal_damage=False):
         self.current_damage_delay -= 1
         if self.current_damage_delay <= 0:
             # Check if you collided with an enemy or enemy bullet
-            enemies = [sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))]        
-            self.colliding_rect = self.rect.inflate(1,-16)
+            enemies = [sprite for sprite in all_sprites if isinstance(sprite, (BaseEnemy, EnemyBullet))]       
             enemies_collided = self.colliding_rect.collidelist([enemy.rect for enemy in enemies])
             print(enemies_collided)
 
@@ -87,10 +86,18 @@ class Player(BaseSprite):
                 if self.hp == 0:
                     self.kill()
                     return False
+            elif deal_damage:
+                self.particles.add(ParticleSpawner(self.rect.center, 10, damage_particles))
+                self.hp -= 1
+                self.current_damage_delay = self.DAMAGE_DELAY
+                if self.hp == 0:
+                    self.kill()
+                    return False
 
         return True
 
-    def update(self, all_sprites, player, game_map):
+    def update(self, all_sprites, player, game_map): 
+        self.colliding_rect = self.rect.inflate(1,-16)
         # WASD movement
         delta_x_y = pygame.Vector2()
         keys_pressed = pygame.key.get_pressed()

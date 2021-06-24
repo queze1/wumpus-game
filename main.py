@@ -161,7 +161,6 @@ def game():
     all_sprites.add(cards)
     all_sprites.add(minimap)
 
-
     running = True
 
     while running:
