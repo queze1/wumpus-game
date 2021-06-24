@@ -29,7 +29,7 @@ damage_particles = {
 
 
 class Player(BaseSprite):
-    SPEED = 20
+    SPEED = 5
     MOMENTUM_COEFFICIENT = 0.66
     KNOCKBACK = 30
 
