@@ -83,9 +83,9 @@ class EnemySpawner:
         wave_enemies = pygame.sprite.Group()
 
         # Modified sigmund function to determine number of enemies to spawn
-        num_enemies = int(5 / (1 + (e ** ((self.lvl_number - 5) / -2))) + 3)
+        num_enemies = int(6 / (1 + (e ** ((self.lvl_number - 5) / -2))) + 3)
         # Modified sigmund function to calculate number of upgrades. This is a floating point number
-        float_upgrade_num = num_enemies * (2 / (1 + e ** (self.lvl_number / -8)) - 1)
+        float_upgrade_num = num_enemies * (1.8 / (1 + e ** (self.lvl_number / -6)) - 0.8)
 
         # Initially populate the enemies to be spawned with the most basic type
         wave_enemy_types = [(random.choice(Enemies.EnemyHierarchy[0]), 0) for _ in range(num_enemies)]
