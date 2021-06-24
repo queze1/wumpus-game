@@ -8,9 +8,10 @@ from lib.helpers import euclidean_distance
 
 class STATE(enum.Enum):
     """The states the enemy can be in."""
-    CHASING = 0
-    CHARGING_UP = 1
-    CHARGING = 2
+    SPAWNING_IN = 0
+    CHASING = 1
+    CHARGING_UP = 2
+    CHARGING = 3
 
 
 class ChargerEnemy(BaseEnemy):
@@ -25,17 +26,27 @@ class ChargerEnemy(BaseEnemy):
 
     IMAGE_PATH = 'assets/mini_cat.png'
 
-    # DIFFICULTY = 4  # How much this enemy is worth in spawning
-    DIFFICULTY = 1
+    DIFFICULTY = 3  # How much this enemy is worth in spawning
 
     def __init__(self, center=(0, 0)):
         super().__init__(image_assets=self.IMAGE_PATH, center=center)
         self.hp = self.MAX_HP
-        self.state = STATE.CHASING
+
+        self.state = STATE.SPAWNING_IN
+        self.current_spawning_delay = self.SPAWNING_IN_DELAY
+
         self.charging_up_timer = 0
         self.charging_vector = None
 
     def update(self, all_sprites, player, game_map):
+        # While the enemy is spawning in, it is immobile and does not take damage or knockback
+        if self.state == STATE.SPAWNING_IN:
+            self.current_spawning_delay -= 1
+            if self.current_spawning_delay <= 0:
+                self.state = STATE.CHASING
+            else:
+                return
+
         # Handle taking damage
         self.hp = self.handle_damage(player, self.hp)
         if not self.hp:

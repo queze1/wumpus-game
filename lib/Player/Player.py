@@ -128,7 +128,6 @@ class Player(BaseSprite):
             card = self.deck.pop(0)
             card.cast(self, bullet_dir)
             self.discard_pile.append(card)
-            print(self.deck)
 
         # Animation
         x, y = delta_x_y
