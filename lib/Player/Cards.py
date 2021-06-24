@@ -50,17 +50,17 @@ class HeavyAttack:
         center = entity.rect.center
 
         if direction in [Direction.RIGHT, Direction.LEFT]:
-            self.shoot_bullet(direction, (center[0], center[1] - 10))
+            self.shoot_bullet(direction, (center[0], center[1] - 40))
             self.shoot_bullet(direction, (center[0], center[1]))
-            self.shoot_bullet(direction, (center[0], center[1] + 10))
+            self.shoot_bullet(direction, (center[0], center[1] + 40))
             self.shoot_bullet(direction, (center[0], center[1] - 20))
             self.shoot_bullet(direction, (center[0], center[1] + 20))
         else:
-            self.shoot_bullet(direction, (center[0] + 10, center[1]))
-            self.shoot_bullet(direction, (center[0], center[1]))
-            self.shoot_bullet(direction, (center[0] - 10, center[1]))
             self.shoot_bullet(direction, (center[0] + 20, center[1]))
+            self.shoot_bullet(direction, (center[0], center[1]))
             self.shoot_bullet(direction, (center[0] - 20, center[1]))
+            self.shoot_bullet(direction, (center[0] + 40, center[1]))
+            self.shoot_bullet(direction, (center[0] - 40, center[1]))
 
         entity.bullets.add(self.bullets)
 
