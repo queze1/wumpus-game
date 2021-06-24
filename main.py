@@ -198,4 +198,5 @@ def game():
         pygame.display.update(rects)
         clock.tick(FPS)
 
+
 main_menu()

@@ -15,7 +15,7 @@ class STATE(enum.Enum):
 class BossEnemy(BaseEnemy):
     DIFFICULTY = 99  # How much this enemy is worth in spawning
     KNOCKBACK_MULTIPLIER = 0  # The boss doesn't take knockback
-    MAX_HP = 15
+    MAX_HP = 30
 
     SPAWNING_IN_DELAY = 60
 
