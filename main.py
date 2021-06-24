@@ -24,11 +24,13 @@ def main_menu():
     menu_background = MenuBackground()
     game_button = GameButton()
     title = Title()
+    exit_button = GameCloseButton()
 
     menu_sprites = pygame.sprite.OrderedUpdates()
     menu_sprites.add(menu_background)
     menu_sprites.add(game_button)
     menu_sprites.add(title)
+    menu_sprites.add(exit_button)
 
     while 1:
         menu_sprites.clear(window, menu_background.image)
@@ -39,12 +41,16 @@ def main_menu():
         if game_button.rect.collidepoint((mx, my)):
             if click:
                 game()
+        if exit_button.rect.collidepoint((mx, my)):
+            if click:
+                pygame.quit()
+                sys.exit()                
  
         click = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit() 
-                syx.exit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
@@ -60,11 +66,13 @@ def pause_menu():
     title = Paused()
     menu_background = MenuBackground()
     game_button = ContinueButton()
+    exit_button = ExitButton()
 
     menu_sprites = pygame.sprite.OrderedUpdates()
     menu_sprites.add(menu_background)
     menu_sprites.add(game_button)
     menu_sprites.add(title)
+    menu_sprites.add(exit_button)
 
     while 1:
         menu_sprites.clear(window, menu_background.image)
@@ -75,7 +83,10 @@ def pause_menu():
         if game_button.rect.collidepoint((mx, my)):
             if click:
                 break
- 
+        if exit_button.rect.collidepoint((mx, my)):
+            if click:
+                main_menu()
+
         click = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
