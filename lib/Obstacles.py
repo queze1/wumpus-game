@@ -10,4 +10,3 @@ class Wall(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load('assets/wall.png').convert()
         self.rect = self.image.get_rect(center=center)
-

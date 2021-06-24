@@ -185,7 +185,7 @@ def game():
             is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites, player)
             if is_cleared:
                 game_map.unlock_room(all_sprites)
-                player.deck.append(random.choice([BaseAttack(), Dash(), HeavyAttack()]))
+                player.deck.append(random.choice([Dash(), HeavyAttack()]))
                 game_map.set_cleared(True)
 
         if player not in all_sprites:
