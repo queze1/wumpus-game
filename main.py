@@ -1,9 +1,11 @@
 import pygame
 import random
+import sys
 
 from config import *
 from lib.Player import Player
-from lib.Background import Background
+from lib.Background import Background, MenuBackground
+from lib.Menu import *
 from lib.GameMap import GameMap
 from lib.HUD import Minimap, Healthbar, Cards
 from lib.Player.Cards import *
@@ -16,52 +18,139 @@ clock = pygame.time.Clock()
 pygame.display.set_caption("game")
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
-# Create objects
-player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
-healthbar = Healthbar(player, center=HEALTHBAR_CENTER)
-cards = Cards(player, center=CARDS_CENTER)
-background = Background()
+def main_menu():
+    click = False
 
-# Initialize map
-game_map = GameMap(ROOM_NUM)
-minimap = Minimap(game_map, center=MINIMAP_CENTER)
-minimap.render_minimap(game_map, None)
+    menu_background = MenuBackground()
+    game_button = GameButton()
+    title = Title()
+    exit_button = GameCloseButton()
 
-all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in order of addition
-all_sprites.add(background)
-all_sprites.add(game_map.environmental_sprites)
-all_sprites.add(player)
-all_sprites.add(healthbar)
-all_sprites.add(cards)
-all_sprites.add(minimap)
+    menu_sprites = pygame.sprite.OrderedUpdates()
+    menu_sprites.add(menu_background)
+    menu_sprites.add(game_button)
+    menu_sprites.add(title)
+    menu_sprites.add(exit_button)
 
-running = True
+    while 1:
+        menu_sprites.clear(window, menu_background.image)
+        menu_sprites.update()
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            break
+        mx, my = pygame.mouse.get_pos()
+ 
+        if game_button.rect.collidepoint((mx, my)):
+            if click:
+                game()
+        if exit_button.rect.collidepoint((mx, my)):
+            if click:
+                pygame.quit()
+                sys.exit()                
+ 
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit() 
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+ 
+        rects = menu_sprites.draw(window)
+        pygame.display.update(rects)
+        clock.tick(60)
 
-    # Level Handling
-    game_map.handle_rooms(all_sprites, player, minimap)
 
-    # Add and update sprites
-    all_sprites.clear(window, background.image)
-    all_sprites.add(player.bullets)
+def pause_menu():
+    click = False
 
-    if not game_map.is_cleared():
-        is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites, player)
-        if is_cleared:
-            game_map.unlock_room(all_sprites)
-            player.deck.append(random.choice([BaseAttack(), Dash(), HeavyAttack()]))
-            game_map.set_cleared(True)
+    title = Paused()
+    menu_background = MenuBackground()
+    game_button = ContinueButton()
+    exit_button = ExitButton()
 
-    all_sprites.add(game_map.enemy_spawner.enemies)
-    all_sprites.update(all_sprites, player, game_map)
+    menu_sprites = pygame.sprite.OrderedUpdates()
+    menu_sprites.add(menu_background)
+    menu_sprites.add(game_button)
+    menu_sprites.add(title)
+    menu_sprites.add(exit_button)
 
-    rects = all_sprites.draw(window)
-    pygame.display.update(rects)
-    clock.tick(FPS)
+    while 1:
+        menu_sprites.clear(window, menu_background.image)
+        menu_sprites.update()
 
-pygame.quit()
+        mx, my = pygame.mouse.get_pos()
+ 
+        if game_button.rect.collidepoint((mx, my)):
+            if click:
+                break
+        if exit_button.rect.collidepoint((mx, my)):
+            if click:
+                main_menu()
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit() 
+                syx.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+ 
+        rects = menu_sprites.draw(window)
+        pygame.display.update(rects)
+        clock.tick(60)
+
+def game():
+    # Create objects
+    player = Player((WINDOW_WIDTH/2, WINDOW_HEIGHT/2))
+    healthbar = Healthbar(player, center=HEALTHBAR_CENTER)
+    cards = Cards(player, center=CARDS_CENTER)
+    background = Background()
+
+    # Initialize map
+    game_map = GameMap(ROOM_NUM)
+    minimap = Minimap(game_map, center=MINIMAP_CENTER)
+    minimap.render_minimap(game_map, None)
+
+    all_sprites = pygame.sprite.OrderedUpdates()  # renders sprites in order of addition
+    all_sprites.add(background)
+    all_sprites.add(game_map.environmental_sprites)
+    all_sprites.add(player)
+    all_sprites.add(healthbar)
+    all_sprites.add(cards)
+    all_sprites.add(minimap)
+
+
+    running = True
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                break
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause_menu()
+
+        # Level Handling
+        game_map.handle_rooms(all_sprites, player, minimap)
+
+        # Add and update sprites
+        all_sprites.clear(window, background.image)
+        all_sprites.add(player.bullets)
+
+        if not game_map.is_cleared():
+            is_cleared = game_map.enemy_spawner.spawn_enemies(all_sprites)
+            if is_cleared:
+                game_map.unlock_room(all_sprites)
+                player.deck.append(random.choice([BaseAttack(), Dash(), HeavyAttack()]))
+                game_map.set_cleared(True)
+
+        all_sprites.add(game_map.enemy_spawner.enemies)
+        all_sprites.update(all_sprites, player, game_map)
+
+        rects = all_sprites.draw(window)
+        pygame.display.update(rects)
+        clock.tick(FPS)
+
+main_menu()
