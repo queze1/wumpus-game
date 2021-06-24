@@ -6,3 +6,5 @@ from .BossEnemy import BossEnemy
 from .ChargerEnemy import ChargerEnemy
 from .ShootingEnemy import ShootingEnemy
 from .EliteShootingEnemy import EliteShootingEnemy
+
+EnemyHierarchy = ((ShootingEnemy,), (EliteShootingEnemy, ChargerEnemy))
