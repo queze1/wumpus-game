@@ -16,13 +16,15 @@ from config import *
 from lib import Enemies
 from lib.helpers import Direction
 from lib.Obstacles import Wall
+from lib.HarmfulObstacles import Lava
 
 LEVEL_PATH = 'assets/levels'
 NORMAL_LEVEL_PATHS = [f'{LEVEL_PATH}/{name}' for name in os.listdir(LEVEL_PATH) if name.startswith('normal')]
 STARTING_LEVEL_PATH = f'{LEVEL_PATH}/starting_room.txt'
 BOSS_LEVEL_PATH = f'{LEVEL_PATH}/boss_room.txt'
 LEVEL_DICTIONARY = {
-    '#': Wall
+    '#': Wall,
+    'L': Lava
 }
 
 # What coordinates will be kept open to create an exit for each direction
