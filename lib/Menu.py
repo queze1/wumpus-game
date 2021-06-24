@@ -23,6 +23,10 @@ class Title(BaseSprite):
     def __init__(self):
         super().__init__(image_assets='assets/menu/TITLE.png', center=(WINDOW_WIDTH/2, 80))
 
+class DeathTitle(BaseSprite):
+    def __init__(self):
+        super().__init__(image_assets='assets/menu/youdie.png', center=(WINDOW_WIDTH/2, 80))
+
 class Paused(BaseSprite):
     def __init__(self):
         super().__init__(image_assets='assets/menu/PAUSED.png', center=(WINDOW_WIDTH/2, 80))
