@@ -21,7 +21,7 @@ class ChargerEnemy(BaseEnemy):
 
     CHARGE_MIN_DISTANCE = 80  # How close the enemy has to be to start charging
     CHARGE_UP_TIME = 15  # How many frames to wait while charging up
-    CHARGE_SPEED = 24  # Initial charging speed
+    CHARGE_SPEED = 28  # Initial charging speed
     CHARGE_MOMENTUM = 0.9  # How much of the charging speed is kept after each frame
 
     IMAGE_PATH = 'assets/mini_cat.png'

@@ -22,7 +22,6 @@ class BossEnemy(BaseEnemy):
     RADIAL_ATTACK_DELAY = 10
     ROTATION_SPEED = 5
 
-    SPEED = 2
     BULLET_SPEED = 6
 
     IMAGE_PATH = 'assets/cat.png'
@@ -54,8 +53,10 @@ class BossEnemy(BaseEnemy):
         # Handle knockback
         self.handle_knockback(all_sprites)
 
-        path = self.lazy_theta_star(player.rect.center, all_sprites)
-        self.move_along_path(path, self.SPEED, all_sprites)
+        # Moves faster the further away
+        vector = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
+        vector = vector.normalize() + vector / 70
+        self.move_respecting_walls(vector, all_sprites)
 
         self.timer += 1
         if self.state == STATE.RADIAL_BULLET_ATTACK:
