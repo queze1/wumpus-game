@@ -10,10 +10,7 @@ class EnemyBullet(BaseSprite):
         self.direction = direction
 
     def update(self, all_sprites, player, gamemap):
-        x, y = self.direction
-        self.rect.move_ip(x, y)
-
         walls = [sprite for sprite in all_sprites if isinstance(sprite, Wall)]
+        self.rect.move_ip(self.direction)
         if pygame.sprite.spritecollideany(self, walls):
             self.kill()
-            return

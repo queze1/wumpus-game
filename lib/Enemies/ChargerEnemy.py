@@ -78,7 +78,7 @@ class ChargerEnemy(BaseEnemy):
         elif self.state == STATE.CHARGING_UP:
             self.charging_up_timer -= 1
             # Start charging when timer is up
-            if self.charging_up_timer == 0:
+            if self.charging_up_timer <= 0:
                 self.state = STATE.CHARGING
 
         # Charging phase - Charge at the player at a high speed, but slow down over time

@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict
+from functools import cache
 from itertools import chain
 import queue
 

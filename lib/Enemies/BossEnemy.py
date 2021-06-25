@@ -9,7 +9,6 @@ class STATE(enum.Enum):
     """The states the enemy can be in."""
     SPAWNING_IN = 0
     RADIAL_BULLET_ATTACK = 1
-    HOMING_ATTACKS = 2
 
 
 class BossEnemy(BaseEnemy):
@@ -20,7 +19,7 @@ class BossEnemy(BaseEnemy):
     SPAWNING_IN_DELAY = 60
 
     RADIAL_ATTACK_DELAY = 10
-    ROTATION_SPEED = 5
+    ROTATION_SPEED = 20
 
     BULLET_SPEED = 6
 
@@ -54,9 +53,10 @@ class BossEnemy(BaseEnemy):
         self.handle_knockback(all_sprites)
 
         # Moves faster the further away
-        vector = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
-        vector = vector.normalize() + vector / 70
-        self.move_respecting_walls(vector, all_sprites)
+        if player.rect.center != self.rect.center:
+            vector = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
+            vector = vector.normalize() + vector / 70
+            self.move_respecting_walls(vector, all_sprites)
 
         self.timer += 1
         if self.state == STATE.RADIAL_BULLET_ATTACK:
@@ -69,5 +69,5 @@ class BossEnemy(BaseEnemy):
                 all_sprites.add(self.bullets)
 
                 # Rotate
-                self.rotation += 20
+                self.rotation += self.ROTATION_SPEED
                 self.timer = 0

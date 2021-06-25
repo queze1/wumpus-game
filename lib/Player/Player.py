@@ -96,7 +96,7 @@ class Player(BaseSprite):
         return True
 
     def update(self, all_sprites, player, game_map): 
-        self.colliding_rect = self.rect.inflate(1,-16)
+        self.colliding_rect = self.rect.inflate(-8, -24)
         # WASD movement
         delta_x_y = pygame.Vector2()
         keys_pressed = pygame.key.get_pressed()
